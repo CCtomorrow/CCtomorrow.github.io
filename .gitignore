@@ -5,3 +5,12 @@
 .DS_Store
 /build
 /captures
+*.yml
+db.json
+package.json
+/node_modules
+/scaffolds
+/source
+/themes
+
+
