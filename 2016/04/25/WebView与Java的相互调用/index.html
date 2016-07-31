@@ -1,0 +1,825 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本次主要介绍 WebView 和前端的一些交互，前端调用 Java 方法的几种方法，顺便会介绍 Java 调用 JS 的方式。
+按如下的顺序依次讲解
+
+前端需要注意的几个地方
+Java 调用 JS 函数，以及传递参数给 JS 函数
+JS 调用 Java 代码不需要 Java 函数的返回值的两种方式
+JS 调用 Java 代码需要获取 Java 函数的返回值的两种方式
+
+##一、前端需要注意的几个地">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebView与Java的相互调用">
+<meta property="og:url" content="http://www.qingyongai.com/2016/04/25/WebView与Java的相互调用/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="本次主要介绍 WebView 和前端的一些交互，前端调用 Java 方法的几种方法，顺便会介绍 Java 调用 JS 的方式。
+按如下的顺序依次讲解
+
+前端需要注意的几个地方
+Java 调用 JS 函数，以及传递参数给 JS 函数
+JS 调用 Java 代码不需要 Java 函数的返回值的两种方式
+JS 调用 Java 代码需要获取 Java 函数的返回值的两种方式
+
+##一、前端需要注意的几个地">
+<meta property="og:updated_time" content="2016-07-31T15:36:04.790Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="WebView与Java的相互调用">
+<meta name="twitter:description" content="本次主要介绍 WebView 和前端的一些交互，前端调用 Java 方法的几种方法，顺便会介绍 Java 调用 JS 的方式。
+按如下的顺序依次讲解
+
+前端需要注意的几个地方
+Java 调用 JS 函数，以及传递参数给 JS 函数
+JS 调用 Java 代码不需要 Java 函数的返回值的两种方式
+JS 调用 Java 代码需要获取 Java 函数的返回值的两种方式
+
+##一、前端需要注意的几个地">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> WebView与Java的相互调用 | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                WebView与Java的相互调用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-25T17:20:40+08:00" content="2016-04-25">
+              2016-04-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/WebView/" itemprop="url" rel="index">
+                    <span itemprop="name">WebView</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/25/WebView与Java的相互调用/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/25/WebView与Java的相互调用/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/04/25/WebView与Java的相互调用/" class="leancloud_visitors" data-flag-title="WebView与Java的相互调用">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本次主要介绍 WebView 和前端的一些交互，前端调用 Java 方法的几种方法，顺便会介绍 Java 调用 JS 的方式。</p>
+<p>按如下的顺序依次讲解</p>
+<ol>
+<li>前端需要注意的几个地方</li>
+<li>Java 调用 JS 函数，以及传递参数给 JS 函数</li>
+<li>JS 调用 Java 代码不需要 Java 函数的返回值的两种方式</li>
+<li>JS 调用 Java 代码需要获取 Java 函数的返回值的两种方式</li>
+</ol>
+<p>##一、前端需要注意的几个地方</p>
+<p>###1.a标签的问题<br>在和客户端交互的过程中，往往都有跳转的，在 Web 开发中，默认的 href 属性通常是 #，然后通过获取标签绑定动作触发事件，这里会出现问题。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;a href=&quot;#&quot;&gt;click here&lt;/a&gt;</span><br><span class="line">$(function () &#123;</span><br><span class="line">    $(&apos;a&apos;).on(&apos;click&apos;, function () &#123;</span><br><span class="line">        // 调用Android的方法代码</span><br><span class="line">        return true;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>这个时候，会发现，当客户端第一次点击的时候，调用时正常的，当客户端再次点击的时候，就会调用客户端的方法两次，每点击依次，调用客户端的方法次数就会 +1。<br>解决方案:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;a href=&quot;javascript:void(0);&quot;&gt;click here&lt;/a&gt;</span><br></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<p>###2.关于传递参数的问题<br>Android 中一般都只能接受一些 String，int 之类的，不能接收 JS 传递过来的对象，同时 Android 也无法将一个对象传递给 JS 函数，但是 IOS 可以，哈哈。<br>在开发中，我们制定客户端和前端的交互的时候，一般采用的是 Json，所以这里就需要一个转换了，前端可以通过UA判断当前是 Android 还是 IOS 然后如果是 Android 的话，进行下面的转换。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">encode: function (data) &#123;</span><br><span class="line">     if (&quot;&quot; == data) &#123;</span><br><span class="line">         return &#123;&#125;;</span><br><span class="line">     &#125;</span><br><span class="line">     return JSON.stringify(data).replace(/&quot;/g, &apos;\&apos;&apos;);</span><br><span class="line"> &#125;,</span><br><span class="line"> decode: function (data) &#123;</span><br><span class="line">     if (&quot;&quot; == data) &#123;</span><br><span class="line">         return &quot;&#123;&#125;&quot;;</span><br><span class="line">     &#125;</span><br><span class="line">     return JSON.parse(data.replace(/\&apos;/ig,&apos;\&quot;&apos;));</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中 decode 方法是解析 Android 传递过来的 Json 字符串，转换成 JS 里面的 Json 对象。<br>encode 是传递 Json 参数给 Android 客户端的时候，把 JS 里面的 Json 对象转换成字符串，然后再传递给 Android 客户端。</p>
+<p>###3.判断当前的页面是否在自家产品内的浏览器打开的<br>这个其实很简单啦，客户端和前端商量好指定一个协议，追加一个标识在客户端的内置浏览器的 UA 上面，前端去按照制定的协议解析即可。</p>
+<p>###4.判断应用是否安装，如果安装了就打开，不然就跳去下载页面<br>其实有很多时候有这种需求，有时候不止是打开应用，更需要打开应用里面的某个页面。<br>为了适用 Android 和 IOS 一般会采用 Scheme 来做，和前端定好 Scheme 的协议，这里前端的判断也是很麻烦的。<br>协议可以这样定义:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">前缀://host?content=base64(json)</span><br></pre></td></tr></table></figure></p>
+<p>Android 客户端把指定接收这个 Scheme 协议的 Activity 加上这个的             intent-filter:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;intent-filter&gt;</span><br><span class="line">    &lt;action android:name=&quot;android.intent.action.VIEW&quot;/&gt;</span><br><span class="line">    &lt;category android:name=&quot;android.intent.category.DEFAULT&quot;/&gt;</span><br><span class="line">    &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;data android:scheme=&quot;前缀&quot;/&gt;</span><br><span class="line">    // host</span><br><span class="line">&lt;/intent-filter&gt;</span><br></pre></td></tr></table></figure></p>
+<p>指定 Scheme 和 host 就可以打开对应的 Activity 页面了，然后客户端需要在这个 Activity 的 onCreate 方法和 onNewIntent 里面获取 Intent，然后解析里面的数据，如果按照上面的协议，解析代码应该是这样的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public void handleIntent() &#123;</span><br><span class="line">    if (mIntent == null) &#123;</span><br><span class="line">        Log.i(Constants.TAG + &quot;WebIntent&quot;, &quot;Web Intent is NULL&quot;);</span><br><span class="line">        return;</span><br><span class="line">    Uri uri = mIntent.getData();</span><br><span class="line">    if (uri == null) &#123;</span><br><span class="line">        Log.i(Constants.TAG + &quot;WebIntent&quot;, &quot;Web Intent URI is NULL&quot;);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    LG.i(Constants.TAG + &quot;WebIntent&quot;, &quot;URI String is &quot; + uri.toString());</span><br><span class="line">    String query = uri.getQuery();</span><br><span class="line">    if (TextUtil.isEmpty(query)) &#123;</span><br><span class="line">        LG.i(Constants.TAG + &quot;WebIntent&quot;, &quot;Query is NULL &quot;);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    LG.i(Constants.TAG + &quot;WebIntent&quot;, &quot;Query：&quot; + query);</span><br><span class="line">    handleQueryString(query);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>##二、Java 调用 JS 函数，以及传递参数给 JS 函数<br>WebView 调用 JS 方法，代码一般是这样的:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mWebView.loadUrl(&quot;javascript:getShareContent();&quot;);</span><br></pre></td></tr></table></figure></p>
+<p>WebView 调用 JS 方法并传递参数给 JS，代码一般是这样的:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mWebView.loadUrl(&quot;javascript:putData(&apos;&quot; + mData + &quot;&apos;)&quot;);</span><br></pre></td></tr></table></figure>
+<p>##三、JS 调用 Java 代码不需要 Java 函数的返回值</p>
+<p>###3.1.对 shouldOverrideUrlLoading 做处理<br>前端和客户端定好协议，传递协议数据，客户端拦截 shouldOverrideUrlLoading 做处理。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;a href=&quot;openUserInfo//user/532177&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<p>客户端可以先给 WebView 设置 mWebView.setWebViewClient 然后重写里面的方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public boolean shouldOverrideUrlLoading(WebView webView, String url) &#123;</span><br><span class="line">    if (url.startsWith(&quot;openUserInfo://&quot;)) &#123;</span><br><span class="line">        RedirectActivity.redirect(this.activity, url);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    if ((url.toLowerCase().startsWith(&quot;http://&quot;)) || (url.toLowerCase().startsWith(&quot;https://&quot;))) &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">        this.activity.startActivity(new Intent(&quot;android.intent.action.VIEW&quot;, Uri.parse(url)));</span><br><span class="line">        return true;</span><br><span class="line">    &#125; catch (ActivityNotFoundException localActivityNotFoundException) &#123;</span><br><span class="line">        localActivityNotFoundException.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RedirectActivity 可以是一个空的 Activity 专门做跳转的，只需要根据 host 判断当前应该干什么，这里是 openUserInfo 打开用户信息界面。</p>
+<p>###3.2.利用 Scheme 做跳转<br>前面讲解过了使用 Scheme 做跳转的例子。</p>
+<p>##四、JS 调用 Java 代码需要获取 Java 函数的返回值</p>
+<p>###4.1.使用 addJavascriptInterface 方式<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">webView.addJavascriptInterface(new WebAppJs(), &quot;WebJava&quot;);</span><br></pre></td></tr></table></figure></p>
+<p>然后实现 WebAppJs 类:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private class WebAppJs implements Serializable &#123;</span><br><span class="line">    private static final long serialVersionUID = 1L;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 在UI线程里运行</span><br><span class="line">     */</span><br><span class="line">    void runOnUiThread(Runnable runnable) &#123;</span><br><span class="line">        mHandler.post(runnable);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 获取用户信息</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    @JavascriptInterface</span><br><span class="line">    public String getUserInfo() &#123;</span><br><span class="line">        LG.i(Constants.TAG, &quot;------js-java------获取用户信息&quot;);</span><br><span class="line">        return &quot;用户信息字符串&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样就可以把字符串信息传递给前端。</p>
+<p>###4.2.使用 onJsPrompt 方式<br>由于在 Android 4.2 以下使用上面的方式会造成注入漏洞，所以才有了这个实现。<br>利用WebChromeClient的 onJsPrompt 也可以达到目的，当然实现比较麻烦，不过GitHub上面已经有一个比较好的开源的这样的实现。<br>地址:<a href="https://github.com/pedant/safe-java-js-webview-bridge" target="_blank" rel="external">https://github.com/pedant/safe-java-js-webview-bridge</a><br>其中他这个实现是这样的，先把要使用的方法在一个类里面写好，然后在网页加载的过程中在 onProgressChanged 里面把写好的类里面的方法生成一些信息，转换成JS代码，注入到当前的网页上面，这样就相当于告诉了网页，我这里已经有了这些方法，你可以自由调用。<br>这个想要看的可以自行查看，作者有篇博客也有详细的讲解过程。</p>
+<p>博客就介绍到这里，上面的四种方法，可酌情采用。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag">#Android</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/" rel="next" title="Android Volley + OkHttp3 + Gson 开源库的封装">
+                <i class="fa fa-chevron-left"></i> Android Volley + OkHttp3 + Gson 开源库的封装
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/02/自定义View实现天气折线图效果/" rel="prev" title="自定义View实现天气折线图效果">
+                自定义View实现天气折线图效果 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/25/WebView与Java的相互调用/"
+           data-title="WebView与Java的相互调用" data-url="http://www.qingyongai.com/2016/04/25/WebView与Java的相互调用/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
