@@ -1,0 +1,803 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="这次分析ViewGroup的事件分发了。
+这次的博客是看了http://blog.csdn.net/lfdfhl/article/details/51603088的分析的,这篇文章写的很好，值得一看，其次，对于View的事件分发比ViewGroup简单太多。
+事件一般先传到Activity的dispatchTouchEvent。12345678910// Android 6.0 代码public">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ViewGroup事件分发">
+<meta property="og:url" content="http://www.qingyongai.com/2016/07/14/ViewGroup事件分发/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="这次分析ViewGroup的事件分发了。
+这次的博客是看了http://blog.csdn.net/lfdfhl/article/details/51603088的分析的,这篇文章写的很好，值得一看，其次，对于View的事件分发比ViewGroup简单太多。
+事件一般先传到Activity的dispatchTouchEvent。12345678910// Android 6.0 代码public">
+<meta property="og:image" content="http://img.blog.csdn.net/20160718221714014">
+<meta property="og:updated_time" content="2016-07-31T15:36:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ViewGroup事件分发">
+<meta name="twitter:description" content="这次分析ViewGroup的事件分发了。
+这次的博客是看了http://blog.csdn.net/lfdfhl/article/details/51603088的分析的,这篇文章写的很好，值得一看，其次，对于View的事件分发比ViewGroup简单太多。
+事件一般先传到Activity的dispatchTouchEvent。12345678910// Android 6.0 代码public">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20160718221714014">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> ViewGroup事件分发 | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                ViewGroup事件分发
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-14T00:40:40+08:00" content="2016-07-14">
+              2016-07-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/自定义View/" itemprop="url" rel="index">
+                    <span itemprop="name">自定义View</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/14/ViewGroup事件分发/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/14/ViewGroup事件分发/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/07/14/ViewGroup事件分发/" class="leancloud_visitors" data-flag-title="ViewGroup事件分发">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这次分析ViewGroup的事件分发了。</p>
+<p>这次的博客是看了<a href="http://blog.csdn.net/lfdfhl/article/details/51603088" target="_blank" rel="external">http://blog.csdn.net/lfdfhl/article/details/51603088</a>的分析的,这篇文章写的很好，值得一看，其次，对于View的事件分发比ViewGroup简单太多。</p>
+<p>事件一般先传到Activity的dispatchTouchEvent。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">// Android 6.0 代码</div><div class="line">public boolean dispatchTouchEvent(MotionEvent ev) &#123;</div><div class="line">    if (ev.getAction() == MotionEvent.ACTION_DOWN) &#123;</div><div class="line">        onUserInteraction();</div><div class="line">    &#125;</div><div class="line">    if (getWindow().superDispatchTouchEvent(ev)) &#123;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">    return onTouchEvent(ev);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到调用Window的事件分发，最后会调用到DecorView(FrameLayout)进行分发，如果消费了返回true，表示事件已经被消费，不然会调用到Activity的onTouchEvent方法，这里很简单啦。</p>
+<a id="more"></a>
+<p>下面说ViewGroup对事件分发的处理。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">// 代码是Android6.0的</div><div class="line">if (actionMasked == MotionEvent.ACTION_DOWN) &#123;</div><div class="line">    cancelAndClearTouchTargets(ev);</div><div class="line">    resetTouchState();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先在ACTION_DOWN做一些初始化操作，清除状态，这个不重要。继续看后面。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">final boolean intercepted;</div><div class="line">// ACTION_DOWN或者mFirstTouchTarget不为null，很明显第一次ACTION_DOWN</div><div class="line">// 的时候肯定是为null的</div><div class="line">// 从这里也可看出ACTION_DOWN事件是一定可以收到的</div><div class="line">if (actionMasked == MotionEvent.ACTION_DOWN</div><div class="line">  || mFirstTouchTarget != null) &#123;</div><div class="line">    // 禁止拦截事件</div><div class="line">    final boolean disallowIntercept = (mGroupFlags &amp;</div><div class="line">    FLAG_DISALLOW_INTERCEPT) != 0;</div><div class="line">    if (!disallowIntercept) &#123;</div><div class="line">        // 拦截的话，还要看当前的onInterceptTouchEvent是否拦截了</div><div class="line">        // 如果虽然子View调用了拦截，但是ViewGroup不拦截，最终的结果</div><div class="line">        // 还是不拦截</div><div class="line">        intercepted = onInterceptTouchEvent(ev);</div><div class="line">        ev.setAction(action);</div><div class="line">  &#125; else &#123;</div><div class="line">        // 禁止拦截</div><div class="line">        intercepted = false;</div><div class="line">    &#125;</div><div class="line">&#125; else &#123;</div><div class="line">        intercepted = true;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>检查是否需要ViewGroup拦截事件。<br>mFirstTouchTarget是TouchTarget类型的，TouchTarget里面封装了被触摸的View以及手指对应的id，该类主要用于多点触控。<br>在第一次ACTION_DOWN的时候，明显mFirstTouchTarget是为null的。<br>mFirstTouchTarget的两种情况:<br>(1) mFirstTouchTarget不为null<br>表示ViewGroup没有拦截Touch事件并且子View消费了Touch<br>(2) mFirstTouchTarget为null<br>表示ViewGroup拦截了Touch事件或者虽然ViewGroup没有拦截Touch事件但是子View也没有消费Touch。总之，此时需要ViewGroup自身处理Touch事件。<br>有个情况要注意:<br>如果不是ACTION_DOWN事件并且mFirstTouchTarget为null，那么直接将intercepted设置为true，表示ViewGroup拦截Touch事件。<br>更加直白地说：如果ACTION_DOWN没有被子View消费(mFirstTouchTarget为null)那么当ACTION_MOVE和ACTION_UP到来时ViewGroup不再去调用onInterceptTouchEvent()判断是否需要拦截而是直接的将intercepted设置为true表示由其自身处理Touch事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">if (dispatchTransformedTouchEvent(ev, false, child, idBitsToAssign)) &#123;</div><div class="line">  mLastTouchDownTime = ev.getDownTime();</div><div class="line">    if (preorderedList != null) &#123;</div><div class="line">  for (int j = 0; j &lt; childrenCount; j++) &#123;</div><div class="line">            if (children[childIndex] == mChildren[j]) &#123;</div><div class="line">                mLastTouchDownIndex = j;</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125; else &#123;</div><div class="line">        mLastTouchDownIndex = childIndex;</div><div class="line">    &#125;</div><div class="line">    mLastTouchDownX = ev.getX();</div><div class="line">    mLastTouchDownY = ev.getY();</div><div class="line">    newTouchTarget = addTouchTarget(child, idBitsToAssign);</div><div class="line">    alreadyDispatchedToNewTouchTarget = true;</div><div class="line">    break;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果事件没有被拦截并且也没有取消。分发ACTION_DOWN事件:<br>首先需要找到当前用户按的是哪个View，如果找到就调用dispatchTransformedTouchEvent去分发ACTION_DOWN事件，这个时候就要注意了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">private TouchTarget addTouchTarget(View child, int pointerIdBits) &#123;</div><div class="line">    TouchTarget target = TouchTarget.obtain(child, pointerIdBits);</div><div class="line">    target.next = mFirstTouchTarget;</div><div class="line">    mFirstTouchTarget = target;</div><div class="line">    return target;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果子View消费了ACTION_DOWN事件就会把当前的View添加到mFirstTouchTarget的链表的表头。<br>mFirstTouchTarget = target;<br>并为其设置值，mFirstTouchTarget就不会为null了，这里要记住是子View消费了事件的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">if (mFirstTouchTarget == null) &#123;</div><div class="line">  handled = dispatchTransformedTouchEvent(ev, canceled, null,</div><div class="line">            TouchTarget.ALL_POINTER_IDS);</div><div class="line">&#125; else &#123;</div><div class="line">    TouchTarget predecessor = null;</div><div class="line">    TouchTarget target = mFirstTouchTarget;</div><div class="line">    while (target != null) &#123;</div><div class="line">        final TouchTarget next = target.next;</div><div class="line">        if (alreadyDispatchedToNewTouchTarget &amp;&amp; target == newTouchTarget) &#123;</div><div class="line">            handled = true;</div><div class="line">        &#125; else &#123;</div><div class="line">            final boolean cancelChild = resetCancelNextUpFlag(target.child)</div><div class="line">                    || intercepted;</div><div class="line">            if (dispatchTransformedTouchEvent(ev, cancelChild,</div><div class="line">                    target.child, target.pointerIdBits)) &#123;</div><div class="line">                handled = true;</div><div class="line">            &#125;</div><div class="line">            if (cancelChild) &#123;</div><div class="line">                if (predecessor == null) &#123;</div><div class="line">                    mFirstTouchTarget = next;</div><div class="line">                &#125; else &#123;</div><div class="line">                    predecessor.next = next;</div><div class="line">                &#125;</div><div class="line">                target.recycle();</div><div class="line">                target = next;</div><div class="line">                continue;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        predecessor = target;</div><div class="line">        target = next;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上个步骤是基本是对mFirstTouchTarget进行赋值操作的，这里就继续事件的分发了。<br>1.mFirstTouchTarget==null<br>它表示Touch事件被ViewGroup拦截了根本就没有派发给子view或者虽然派发了但是在第四步中没有找到能够消费Touch事件的子View。<br>2.mFirstTouchTarget != null，表示找到了能够消费Touch事件的子View。<br>1.处理ACTION_DOWN<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">if (alreadyDispatchedToNewTouchTarget &amp;&amp; target == newTouchTarget) &#123;</div><div class="line">    handled = true;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果mFirstTouchTarget！=null则说明在第四步中Touch事件已经被消费，所以不再做其他处理</p>
+<ol>
+<li>处理ACTION_MOVE和ACTION_UP<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">else &#123;</div><div class="line">    final boolean cancelChild = resetCancelNextUpFlag(target.child)</div><div class="line">            || intercepted;</div><div class="line">    if (dispatchTransformedTouchEvent(ev, cancelChild,</div><div class="line">            target.child, target.pointerIdBits)) &#123;</div><div class="line">        handled = true;</div><div class="line">    &#125;</div><div class="line">    if (cancelChild) &#123;</div><div class="line">        if (predecessor == null) &#123;</div><div class="line">            mFirstTouchTarget = next;</div><div class="line">        &#125; else &#123;</div><div class="line">            predecessor.next = next;</div><div class="line">        &#125;</div><div class="line">        target.recycle();</div><div class="line">        target = next;</div><div class="line">        continue;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>调用dispatchTransformedTouchEvent()将事件分发给子View处理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">if (canceled|| actionMasked == MotionEvent.ACTION_UP</div><div class="line">  || actionMasked == MotionEvent.ACTION_HOVER_MOVE) &#123;</div><div class="line">        resetTouchState();</div><div class="line">    &#125; else if (split &amp;&amp; actionMasked == MotionEvent.ACTION_POINTER_UP) &#123;</div><div class="line">        final int actionIndex = ev.getActionIndex();</div><div class="line">        final int idBitsToRemove = 1 &lt;&lt; ev.getPointerId(actionIndex);</div><div class="line">        removePointersFromTouchTargets(idBitsToRemove);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后清理数据和状态还原，在手指抬起或者取消Touch分发时清除原有的相关数据</p>
+<p>还有一点，事件分发给子View的时候调用下面的方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,View child, int desiredPointerIdBits) &#123;</div><div class="line">    final boolean handled;</div><div class="line">    // 代码简化</div><div class="line">  if (child == null) &#123;</div><div class="line">        handled = super.dispatchTouchEvent(transformedEvent);</div><div class="line">    &#125; else &#123;</div><div class="line">        handled = child.dispatchTouchEvent(transformedEvent);</div><div class="line">    &#125;</div><div class="line">    return handled;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面多次调用这个方法，如果ViewGroup拦截了Touch事件或者子View不能消耗掉Touch事件，那么ViewGroup会在其自身的onTouch()，onTouchEvent()中处理Touch如果子View消耗了Touch事件父View就不能再处理Touch.</p>
+<p>图示:<br><img src="http://img.blog.csdn.net/20160718221714014" alt="ViewGroup事件分发"></p>
+<p>问题:<br>ViewGroup将ACTION_DOWN分发给子View，如果子View没有消费该事件，那么当ACTION_MOVE和ACTION_UP到来的时候系统还会将Touch事件派发给该子View么？<br>答案:不会，ACTION_DOWN事件不消费的话，mFirstTouchTarget就为null，执行到后面直接执行<br>    handled = dispatchTransformedTouchEvent(ev, canceled, null,<br>    TouchTarget.ALL_POINTER_IDS);<br>那传递的子view是null，则会直接调用当前ViewGroup的事件处理方法。</p>
+<p>问题:<br>ViewGroup将ACTION_DOWN分发给子View，如果子View没有消费该事件(默认就ViewGroup消费事件了)，那么当ACTION_MOVE和ACTION_UP到来的时候系统还会将Touch事件派发给该ViewGroup么？(也是我遇到的问题)<br>答案:不会，事件会传递到Activity里面去处理，紧接着上面的答案，ACTION_DOWN事件会交给当前ViewGroup去处理，即调用View的dispatchTouchEvent去处理事件，关于View的事件分发，上一篇文章有分析，当前的ViewGroup一般情况下肯定没有设置mOnTouchListener，那最终事件会传递到当前ViewGroup的onTouchEvent，其实呢ViewGroup是没有实现onTouchEvent方法的，最终调用的是View的onTouchEvent方法，那其实要满足<br>    if (((viewFlags &amp; CLICKABLE) == CLICKABLE ||<br>        (viewFlags &amp; LONG_CLICKABLE) == LONG_CLICKABLE) ||<br>        (viewFlags &amp; CONTEXT_CLICKABLE) == CONTEXT_CLICKABLE)<br>这些条件，才能消费事件，ViewGroup一般不会打上这几个FLAG的，所以呢，后续的ACTION_MOVE和ACTION_UP到来的时候系统不会将事件派发给该ViewGroup。</p>
+<p>问题:<br>ViewGroup将ACTION_DOWN分发给子View，如果子View和ViewGroup没有消费该事件(默认会Activity消费)，那么当ACTION_MOVE和ACTION_UP到来的时候系统还会将Touch事件派发给Activity么？<br>答案:会。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public boolean dispatchTouchEvent(MotionEvent ev) &#123;</div><div class="line">    if (ev.getAction() == MotionEvent.ACTION_DOWN) &#123;</div><div class="line">        onUserInteraction();</div><div class="line">    &#125;</div><div class="line">    if (getWindow().superDispatchTouchEvent(ev)) &#123;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">    return onTouchEvent(ev);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面是Activity的dispatchTouchEvent处理，第五行代码肯定是返回false的，因为ViewGroup并没有消费事件，就会调用当前Activity的onTouchEvent方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public boolean onTouchEvent(MotionEvent event) &#123;</div><div class="line">    if (mWindow.shouldCloseOnTouch(this, event)) &#123;</div><div class="line">        finish();</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">    return false;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>很明显返回true，消费了ACTION_DOWN事件，所以后续的ACTION_MOVE和ACTION_UP，当前的Activity可以收到。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag">#Android</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/12/View的事件分发/" rel="next" title="View的事件分发">
+                <i class="fa fa-chevron-left"></i> View的事件分发
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/23/github下fork后如何同步源库的新更新内容/" rel="prev" title="github下fork后如何同步源库的新更新内容?">
+                github下fork后如何同步源库的新更新内容? <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/07/14/ViewGroup事件分发/"
+           data-title="ViewGroup事件分发" data-url="http://www.qingyongai.com/2016/07/14/ViewGroup事件分发/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">15</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
