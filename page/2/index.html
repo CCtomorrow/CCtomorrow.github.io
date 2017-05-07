@@ -269,6 +269,152 @@
             
               
                 
+                <a class="post-title-link" href="/2016/07/12/View的事件分发/" itemprop="url">
+                  View的事件分发
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-12T00:17:40+08:00" content="2016-07-12">
+              2016-07-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/自定义View/" itemprop="url" rel="index">
+                    <span itemprop="name">自定义View</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/12/View的事件分发/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/12/View的事件分发/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/07/12/View的事件分发/" class="leancloud_visitors" data-flag-title="View的事件分发">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h3><p>最近写这两篇文章的原因是因为在自定义View的时候遇到有关事件分发的问题，然后自己怎么也想不通，最后决定自己看一遍源代码，那其实自己以前也有看过应该说很多的关于事件分发的文章，大概的东西也知道，但是对于有的事情还是模棱两可吧。<br>先说我遇到的问题吧，自定义ViewGroup里面有ImageView，我是想在ViewGroup里面去移动ImageView，发现当前的ViewGroup只能接收到DOWN事件(当然这个事件必须能接收到)，后续的事件都接收不到，这时候我就真的百思不得姐了，不是子View不消费事件，事件会让ViewGroup处理么，没问题啊，为什么会这样呢？<br>后来发现当给子View即ImageView设置Click事件之后，神奇的事情发生了，ImageView可以移动了，这两个问题围绕着我，那就想好好的把事件分发搞懂。</p>
+<p>首先我们要知道onTouchEvent事件是不需要我们处理的，系统以及帮我们处理了，当然我们可以重写这个方法。</p>
+<h4 id="事件分发到View，肯定先走到dispatchTouchEvent中"><a href="#事件分发到View，肯定先走到dispatchTouchEvent中" class="headerlink" title="事件分发到View，肯定先走到dispatchTouchEvent中"></a>事件分发到View，肯定先走到dispatchTouchEvent中</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">// 代码是Android 6.0的</div><div class="line">public boolean dispatchTouchEvent(MotionEvent event) &#123;</div><div class="line">    boolean result = false;</div><div class="line">    final int actionMasked = event.getActionMasked();</div><div class="line">    if (onFilterTouchEventForSecurity(event)) &#123;</div><div class="line">    ListenerInfo li = mListenerInfo;</div><div class="line">    if (li != null &amp;&amp; li.mOnTouchListener != null</div><div class="line">    &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED</div><div class="line">    &amp;&amp; li.mOnTouchListener.onTouch(this, event)) &#123;</div><div class="line">            result = true;</div><div class="line">        &#125;</div><div class="line">        if (!result &amp;&amp; onTouchEvent(event)) &#123;</div><div class="line">            result = true;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面的代码是经过简化的。<br>最终返回的是result，所以看哪几个地方result的值发生变化就好。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/07/12/View的事件分发/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/06/02/自定义View实现天气折线图效果/" itemprop="url">
                   自定义View实现天气折线图效果
                 </a>
@@ -1051,7 +1197,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">15</span>
+              <span class="site-state-item-count">16</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1059,7 +1205,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>

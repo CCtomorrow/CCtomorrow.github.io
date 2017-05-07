@@ -269,6 +269,175 @@
             
               
                 
+                <a class="post-title-link" href="/2017/05/05/Android的资源管理器的创建过程/" itemprop="url">
+                  Android的资源管理器的创建过程
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-05-05T23:43:40+08:00" content="2017-05-05">
+              2017-05-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/插件化/" itemprop="url" rel="index">
+                    <span itemprop="name">插件化</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/05/05/Android的资源管理器的创建过程/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/05/05/Android的资源管理器的创建过程/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2017/05/05/Android的资源管理器的创建过程/" class="leancloud_visitors" data-flag-title="Android的资源管理器的创建过程">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>最近在研究Android的插件化，插件化需要解决的问题大概有这样的几个，为什么需要插件化技术这个就不说啦。</p>
+<ul>
+<li>资源访问</li>
+<li>组件的生命周期的管理</li>
+</ul>
+<p>参考:<br><a href="http://blog.csdn.net/luoshengyang/article/details/8738877">Android资源管理框架（Asset Manager）简要介绍和学习计划</a><br><a href="http://blog.csdn.net/luoshengyang/article/details/6685853">Android应用程序的Activity启动过程简要介绍和学习计划</a><br><a href="http://blog.csdn.net/singwhatiwanna/article/details/18154335">Android源码分析-Activity的启动过程</a></p>
+<p>这篇文章浅解一下Android的资源管理器的创建过程。这里说一下，其实很多人对插件化的资源加载有一个误区呀，就是一般别人说插件化需要解决一个资源冲突的问题，这里有一个很重要的问题。</p>
+<h3 id="为什么会有资源冲突的问题？"><a href="#为什么会有资源冲突的问题？" class="headerlink" title="为什么会有资源冲突的问题？"></a>为什么会有资源冲突的问题？</h3><p>这个问题其实不应该放在最前面说的，但是很多人都有一个误区，感觉必须先说一下这个了。<br>首先看Android的资源分类，Android的资源可分为两大类。分别是Asserts和Res。</p>
+<ul>
+<li>Asserts<br>assets类资源放在工程根目录的Assets子目录下，这些文件最终会被原装不动地打包在apk文件中。如果我们要在程序中访问这些文件，那么就需要指定文件名来访问。</li>
+<li>Res<br>res资源比较多，放一张图吧，基本一看就明白。<br><img src="http://upload-images.jianshu.io/upload_images/1321338-f504c4b46ead8fe0.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="res资源类型.png"></li>
+</ul>
+<p>res资源大概是这样的啦，当然还有raw以及xml等资源啦。在编译打包的过程中，会把资源文件打包成二进制文件(.xml文件打包成二进制文件，png文件进行优化等)。会对除了assets资源之外所有的资源赋予一个资源ID常量，并且会生成一个资源索引表resources.arsc。</p>
+<p>这个resources.arsc文件记录了所有的应用程序资源目录的信息，包括每一个资源名称、类型、值、ID以及所配置的维度信息。我们可以将这个resources.arsc文件想象成是一个资源索引表，这个资源索引表在给定资源ID和设备配置信息的情况下，能够在应用程序的资源目录中快速地找到最匹配的资源。</p>
+<p>这些资源ID被终会被定义为Java常量值，保存在一个R.java文件中，与应用程序的其它源文件一起被编译到程序中，这样我们就可以在程序或者资源文件中通过这些ID常量来访问指定的资源。</p>
+<p>资源ID的最终的格式是:<em>0xPPTTNNNN</em><br>资源ID是一个4字节的无符号整数，其中，最高字节表示Package ID，次高字节表示Type ID，最低两字节表示Entry ID。</p>
+<ul>
+<li>PP Package ID相当于是一个命名空间，限定资源的来源。<br>Android系统当前定义了两个资源命令空间，其中一个系统资源命令空间（比如我们可以直接引用系统提供好的主题等），它的Package ID等于0x01，另外一个是应用程序资源命令空间，它的Package ID等于0x7F。系统资源包的Package ID就等于0x01，而我们在应用程序中定义的资源的Package ID的值都等于0x7F，上图就可以看出来的。</li>
+<li>TT Type ID是指资源的类型ID。<br>资源的类型有animator、anim、color、string和xml等等若干种，每一种都会被赋予一个ID。上图也可以看出来的。</li>
+<li>NNNN Entry ID是指每一个资源在其所属的资源类型中所出现的次序。<br>注意，不同类型的资源的Entry ID有可能是相同的，但是由于它们的类型不同，我们仍然可以通过其资源ID来区别开来。</li>
+</ul>
+<p>上面说这么多就是想说，我们写的App通常情况下资源等的ID都是0x7F开始的，插件化的时候，开发插件是当作一个App来开发的，打包的时候资源ID也是0x7F开始的，所以呢，这个插件与插件，插件与宿主的资源ID很有可能是一样的。</p>
+<p><em>下面说的是重点:</em><br>在插件化的开发过程中，加载插件的资源可以单独创建了用于访问插件资源的AssertManager和Resource对象，即插件独立使用一个资源管理器，<em>这样宿主访问宿主的资源，插件访问插件的资源，这样子是不会出现资源冲突问题的。</em>然而这个(插件使用单独的资源管理器)在现实中是不切实际的，一般都会将插件的资源路径添加到宿主的AssetManager中，这样做的原因是为了插件与宿主之间的资源共享，资源共享的原因主要是为了减少插件的体积。<br>现阶段对资源冲突的解决方案:</p>
+<ul>
+<li>修改aapt源码，定制aapt工具编译期间修改PP段。<br>例如:<a href="https://github.com/alibaba/atlas">atlas</a></li>
+<li>修改aapt的产物，即编译后期重新整理插件Apk的资源，编排ID。<br>例如:<a href="https://github.com/wequick/Small">Small</a><br>这两种方案都可以，修改aapt的源代码，虽然说比较麻烦，但是其实需要修改的代码是比较少的，不过需要你有个Android的源码的环境才能编译出aappt可执行文件，修改aapt的产物，一般是写gradle插件来实现，因为Android的源代码是知道的，所以我们能知道aapt最后生成的二进制文件的格式，然后自己整理资源的ID。</li>
+</ul>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/05/05/Android的资源管理器的创建过程/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/03/26/手把手教你写Router框架入门篇/" itemprop="url">
                   手把手教你写Router框架入门篇
                 </a>
@@ -1637,152 +1806,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/07/12/View的事件分发/" itemprop="url">
-                  View的事件分发
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-07-12T00:17:40+08:00" content="2016-07-12">
-              2016-07-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-                  ， 
-                
-
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/Android/自定义View/" itemprop="url" rel="index">
-                    <span itemprop="name">自定义View</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/07/12/View的事件分发/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/12/View的事件分发/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-             <span id="/2016/07/12/View的事件分发/" class="leancloud_visitors" data-flag-title="View的事件分发">
-               &nbsp; | &nbsp;
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               <span class="post-meta-item-text">阅读次数 </span>
-               <span class="leancloud-visitors-count"></span>
-              </span>
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h3><p>最近写这两篇文章的原因是因为在自定义View的时候遇到有关事件分发的问题，然后自己怎么也想不通，最后决定自己看一遍源代码，那其实自己以前也有看过应该说很多的关于事件分发的文章，大概的东西也知道，但是对于有的事情还是模棱两可吧。<br>先说我遇到的问题吧，自定义ViewGroup里面有ImageView，我是想在ViewGroup里面去移动ImageView，发现当前的ViewGroup只能接收到DOWN事件(当然这个事件必须能接收到)，后续的事件都接收不到，这时候我就真的百思不得姐了，不是子View不消费事件，事件会让ViewGroup处理么，没问题啊，为什么会这样呢？<br>后来发现当给子View即ImageView设置Click事件之后，神奇的事情发生了，ImageView可以移动了，这两个问题围绕着我，那就想好好的把事件分发搞懂。</p>
-<p>首先我们要知道onTouchEvent事件是不需要我们处理的，系统以及帮我们处理了，当然我们可以重写这个方法。</p>
-<h4 id="事件分发到View，肯定先走到dispatchTouchEvent中"><a href="#事件分发到View，肯定先走到dispatchTouchEvent中" class="headerlink" title="事件分发到View，肯定先走到dispatchTouchEvent中"></a>事件分发到View，肯定先走到dispatchTouchEvent中</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">// 代码是Android 6.0的</div><div class="line">public boolean dispatchTouchEvent(MotionEvent event) &#123;</div><div class="line">    boolean result = false;</div><div class="line">    final int actionMasked = event.getActionMasked();</div><div class="line">    if (onFilterTouchEventForSecurity(event)) &#123;</div><div class="line">    ListenerInfo li = mListenerInfo;</div><div class="line">    if (li != null &amp;&amp; li.mOnTouchListener != null</div><div class="line">    &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED</div><div class="line">    &amp;&amp; li.mOnTouchListener.onTouch(this, event)) &#123;</div><div class="line">            result = true;</div><div class="line">        &#125;</div><div class="line">        if (!result &amp;&amp; onTouchEvent(event)) &#123;</div><div class="line">            result = true;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>上面的代码是经过简化的。<br>最终返回的是result，所以看哪几个地方result的值发生变化就好。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/07/12/View的事件分发/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1828,7 +1851,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">15</span>
+              <span class="site-state-item-count">16</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1836,7 +1859,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
