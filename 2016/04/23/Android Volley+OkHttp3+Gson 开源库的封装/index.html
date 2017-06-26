@@ -1,0 +1,798 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Volley,OKHttp3," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="博客将按照下面的步骤介绍Volley的重新封装:1.OkHttp3的关于Volley的HttpStack实现2.HttpRequest的实现和HttpListener回调监听的封装3.Volley原始的Request的Wrap4.各种方式的请求的重新实现5.统一请求的实现6.使用
+所需依赖:1234compile &amp;apos;com.android.volley:volley:1.0.0&amp;apos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Volley + OkHttp3 + Gson 开源库的封装">
+<meta property="og:url" content="http://www.qingyongai.com/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="博客将按照下面的步骤介绍Volley的重新封装:1.OkHttp3的关于Volley的HttpStack实现2.HttpRequest的实现和HttpListener回调监听的封装3.Volley原始的Request的Wrap4.各种方式的请求的重新实现5.统一请求的实现6.使用
+所需依赖:1234compile &amp;apos;com.android.volley:volley:1.0.0&amp;apos">
+<meta property="og:updated_time" content="2017-06-26T15:33:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android Volley + OkHttp3 + Gson 开源库的封装">
+<meta name="twitter:description" content="博客将按照下面的步骤介绍Volley的重新封装:1.OkHttp3的关于Volley的HttpStack实现2.HttpRequest的实现和HttpListener回调监听的封装3.Volley原始的Request的Wrap4.各种方式的请求的重新实现5.统一请求的实现6.使用
+所需依赖:1234compile &amp;apos;com.android.volley:volley:1.0.0&amp;apos">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Android Volley + OkHttp3 + Gson 开源库的封装 | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Android Volley + OkHttp3 + Gson 开源库的封装
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-23T20:52:40+08:00" content="2016-04-23">
+              2016-04-23
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/other/" itemprop="url" rel="index">
+                    <span itemprop="name">other</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/" class="leancloud_visitors" data-flag-title="Android Volley + OkHttp3 + Gson 开源库的封装">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>博客将按照下面的步骤介绍Volley的重新封装:<br>1.OkHttp3的关于Volley的HttpStack实现<br>2.HttpRequest的实现和HttpListener回调监听的封装<br>3.Volley原始的Request的Wrap<br>4.各种方式的请求的重新实现<br>5.统一请求的实现<br>6.使用</p>
+<p>所需依赖:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">compile &apos;com.android.volley:volley:1.0.0&apos;</div><div class="line">compile &apos;com.squareup.okio:okio:1.7.0&apos;</div><div class="line">compile &apos;com.squareup.okhttp3:okhttp:3.2.0&apos;</div><div class="line">compile &apos;com.google.code.gson:gson:2.6.2&apos;</div></pre></td></tr></table></figure></p>
+<p>###一、OkHttp3Stack的关于Volley的实现<br>这个是应该是比较简单的，关于OkHttp3Stack的实现在github上面有实现，本博客里面的实现在我的<a href="https://github.com/qingyongai/VolleyOkExtension/blob/master/volleyokextensionlib/src/main/java/com/yong/volleyok/okhttp/OkHttp3Stack.java" target="_blank" rel="external">Github</a>上面。<br>由于代码比较长，而且这个也不是这篇博客的重点，大家需要的话可以去我的<a href="https://github.com/qingyongai/VolleyOkExtension/blob/master/volleyokextensionlib/src/main/java/com/yong/volleyok/okhttp/OkHttp3Stack.java" target="_blank" rel="external">Github</a>查看。</p>
+<a id="more"></a>
+<p>###二、HttpRequest的实现和HttpListener回调监听的封装</p>
+<p>###2.1.HttpRequest的实现<br>通过查看Volley的源代码我们会发现，Volley的Request的构造方法是这样写的:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public Request(int method, String url, Response.ErrorListener listener) &#123;</div><div class="line">    mMethod = method;</div><div class="line">    mUrl = url;</div><div class="line">    mErrorListener = listener;</div><div class="line">    setRetryPolicy(new DefaultRetryPolicy());</div><div class="line">    mDefaultTrafficStatsTag = findDefaultTrafficStatsTag(url);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>请求的参数有一些通过构造方法传递，而另外一些参数是通过Request里面的很多的get方法得到的，比如post请求的时候的参数是通过Request类里面的getParams()实现的，而我们需要做的就是如果需要post请求，那么就重写请求类，覆盖里面的getParams方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected Map&lt;String, String&gt; getParams() throws AuthFailureError &#123;</div><div class="line">    return null;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>会发现这样并不利于统一的调度，那其实在构造一个请求的时候，参数是不固定的，而且有的需要，有的不需要，这个时候，我们可以通过Builder模式来构造请求，可以进行如下的封装:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/22 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; 请求的封装，使用Builder模式进行构建 &lt;br&gt;</div><div class="line"> */</div><div class="line">public class HttpRequest &#123;</div><div class="line"></div><div class="line">    private Builder mBuilder;</div><div class="line"></div><div class="line">    private HttpRequest(Builder builder) &#123;</div><div class="line">        this.mBuilder = builder;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Map&lt;String, String&gt; getHeaders() &#123;</div><div class="line">        return mBuilder.headMaps;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public int getMethod() &#123;</div><div class="line">        return mBuilder.method;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Map&lt;String, String&gt; getParams() &#123;</div><div class="line">        return mBuilder.params;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request.Priority getPriority() &#123;</div><div class="line">        return mBuilder.priority;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public String getContentType() &#123;</div><div class="line">        return mBuilder.contentType;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public String getParamsEncodeing() &#123;</div><div class="line">        return mBuilder.paramsEncodeing;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public RetryPolicy getRetryPolicy() &#123;</div><div class="line">        return mBuilder.retryPolicy;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public String getUrl() &#123;</div><div class="line">        return mBuilder.url;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public static final class Builder &#123;</div><div class="line"></div><div class="line">        String paramsEncodeing = &quot;UTF-8&quot;;</div><div class="line">        String url;</div><div class="line">        int method = Request.Method.GET;</div><div class="line">        Request.Priority priority = Request.Priority.NORMAL;</div><div class="line">        String contentType = &quot;application/x-www-form-urlencoded; charset=utf-8&quot;;</div><div class="line">        // 请求头</div><div class="line">        Map&lt;String, String&gt; headMaps = new HashMap&lt;&gt;();</div><div class="line">        // 参数</div><div class="line">        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</div><div class="line"></div><div class="line">        // 超时以及重连次数</div><div class="line">        RetryPolicy retryPolicy = new DefaultRetryPolicy(10000, 2, 1.0F);</div><div class="line"></div><div class="line">        public Builder(String url) &#123;</div><div class="line">            this.url = url;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 增加 Http 头信息</div><div class="line">         *</div><div class="line">         * @param key   key</div><div class="line">         * @param value value</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder addHeader(String key, String value) &#123;</div><div class="line">            this.headMaps.put(key, value);</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 增加 Http 头信息</div><div class="line">         *</div><div class="line">         * @param headers</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder addheader(Map&lt;String, String&gt; headers) &#123;</div><div class="line">            for (Map.Entry&lt;String, String&gt; entry : headers.entrySet()) &#123;</div><div class="line">                this.headMaps.put(entry.getKey(), entry.getValue());</div><div class="line">            &#125;</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 设置 Http 请求方法</div><div class="line">         *</div><div class="line">         * @param method &#123;@link Request.Method&#125;</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder setMethod(int method) &#123;</div><div class="line">            this.method = method;</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 增加请求参数</div><div class="line">         *</div><div class="line">         * @param key   key</div><div class="line">         * @param value value</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder addParam(String key, Object value) &#123;</div><div class="line">            this.params.put(key, String.valueOf(value));</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 增加请求参数</div><div class="line">         *</div><div class="line">         * @param params map&lt;string, object&gt;</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder addParam(Map&lt;String, Object&gt; params) &#123;</div><div class="line">            for (Map.Entry&lt;String, Object&gt; entry : params.entrySet()) &#123;</div><div class="line">                this.params.put(entry.getKey(), String.valueOf(entry.getValue()));</div><div class="line">            &#125;</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 设置请求优先级</div><div class="line">         *</div><div class="line">         * @param priority &#123;@link Request.Priority&#125;</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder setPriority(Request.Priority priority) &#123;</div><div class="line">            this.priority = priority;</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 设置文本类型</div><div class="line">         *</div><div class="line">         * @param contentType</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder setContentType(String contentType) &#123;</div><div class="line">            this.contentType = contentType;</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 设置超时以及重连次数</div><div class="line">         *</div><div class="line">         * @param initialTimeoutMs  超时时间</div><div class="line">         * @param maxNumRetries     重连次数</div><div class="line">         * @param backoffMultiplier</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public Builder setRetryPolicy(int initialTimeoutMs, int maxNumRetries, float backoffMultiplier) &#123;</div><div class="line">            this.retryPolicy = new DefaultRetryPolicy(initialTimeoutMs, maxNumRetries, backoffMultiplier);</div><div class="line">            return this;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        /**</div><div class="line">         * 构建 HttpRequest</div><div class="line">         *</div><div class="line">         * @return</div><div class="line">         */</div><div class="line">        public HttpRequest build() &#123;</div><div class="line">            return new HttpRequest(this);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我们构造这样的一个请求的类，然后在请求的时候可以通过这个类，去构建请求的时候需要的一些参数。这个类很简单就不用详细的讲解了。具体的怎么使用这个类去构造请求，我们会在Wrap Volley的Request的时候详细的说明。</p>
+<p>###2.2.HttpListener的封装<br>其实就是回调的封装，在Volley里面是使用了两个接口来做的，这里统一成一个接口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/22 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; 回调响应 &lt;br&gt;</div><div class="line"> */</div><div class="line">public interface HttpListener&lt;T&gt; &#123;</div><div class="line">    /**</div><div class="line">     * 服务器响应成功</div><div class="line">     *</div><div class="line">     * @param result 响应的理想数据。</div><div class="line">     */</div><div class="line">    void onSuccess(T result);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 网络交互过程中发生错误</div><div class="line">     *</div><div class="line">     * @param error &#123;@link VolleyError&#125;</div><div class="line">     */</div><div class="line">    void onError(VolleyError error);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将成功和失败的回调封装到一个方法里面了。</p>
+<p>###三、Request的Wrap<br>为了以后能更好的升级的考虑，我们最好是不采用直接改源代码的方式，所以我们只能对原始的请求类Request类进行Wrap，然后我们自定义请求类继承这个Wrap的类。先贴代码，然后讲解。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok.request;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/22 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; 原始请求的包装 &lt;br&gt;</div><div class="line"> */</div><div class="line">public abstract class RequestWrapper&lt;T&gt; extends com.android.volley.Request&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求</div><div class="line">     */</div><div class="line">    protected HttpRequest mHttpRequest;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 结果</div><div class="line">     */</div><div class="line">    protected HttpListener&lt;T&gt; mHttpListener;</div><div class="line"></div><div class="line">    public RequestWrapper(HttpRequest httpRequest, HttpListener&lt;T&gt; listener) &#123;</div><div class="line">        // 这里不需要错误的监听，下面已经做了处理</div><div class="line">        super(httpRequest.getMethod(), httpRequest.getUrl(), null);</div><div class="line">        this.mHttpRequest = httpRequest;</div><div class="line">        this.mHttpListener = listener;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 得到url，这里get方法作处理，把参数都拼接上去</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public String getUrl() &#123;</div><div class="line">        // 当get的时候做处理，把参数都连接起来</div><div class="line">        try &#123;</div><div class="line">            if (getMethod() == Method.GET &amp;&amp;</div><div class="line">                    (getParams() != null &amp;&amp; getParams().size() != 0)) &#123;</div><div class="line">                String encodedParams = getEncodedUrlParams();</div><div class="line">                String extra = &quot;&quot;;</div><div class="line">                if (encodedParams != null &amp;&amp; encodedParams.length() &gt; 0) &#123;</div><div class="line">                    if (!mHttpRequest.getUrl().endsWith(&quot;?&quot;)) &#123;</div><div class="line">                        extra += &quot;?&quot;;</div><div class="line">                    &#125;</div><div class="line">                    extra += encodedParams;</div><div class="line">                &#125;</div><div class="line">                return mHttpRequest.getUrl() + extra;</div><div class="line">            &#125;</div><div class="line">        &#125; catch (AuthFailureError e) &#123;</div><div class="line">        &#125;</div><div class="line">        return mHttpRequest.getUrl();</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 拼接get请求的参数的拼接</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     * @throws AuthFailureError</div><div class="line">     */</div><div class="line">    public String getEncodedUrlParams() throws AuthFailureError &#123;</div><div class="line">        StringBuilder encodedParams = new StringBuilder();</div><div class="line">        String paramsEncoding = getParamsEncoding();</div><div class="line">        Map&lt;String, String&gt; params = getParams();</div><div class="line">        try &#123;</div><div class="line">            for (Map.Entry&lt;String, String&gt; entry : params.entrySet()) &#123;</div><div class="line">                if (null == entry.getValue()) &#123;</div><div class="line">                    continue;</div><div class="line">                &#125;</div><div class="line">                encodedParams.append(URLEncoder.encode(entry.getKey(), paramsEncoding));</div><div class="line">                encodedParams.append(&apos;=&apos;);</div><div class="line">                encodedParams.append(URLEncoder.encode(entry.getValue(), paramsEncoding));</div><div class="line">                encodedParams.append(&apos;&amp;&apos;);</div><div class="line">            &#125;</div><div class="line">            return encodedParams.toString();</div><div class="line">        &#125; catch (UnsupportedEncodingException uee) &#123;</div><div class="line">            throw new RuntimeException(&quot;Encoding not supported: &quot; + paramsEncoding, uee);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 得到请求头</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     * @throws AuthFailureError</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError &#123;</div><div class="line">        return mHttpRequest.getHeaders();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求参数</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     * @throws AuthFailureError</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    protected Map&lt;String, String&gt; getParams() throws AuthFailureError &#123;</div><div class="line">        return mHttpRequest.getParams();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求的ContentType</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public String getBodyContentType() &#123;</div><div class="line">        return mHttpRequest.getContentType();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求的优先级，这里RequestQueue里面会根据这个把请求进行排序</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public Priority getPriority() &#123;</div><div class="line">        return mHttpRequest.getPriority();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 设置请求时长，请求失败之后的次数</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public RetryPolicy getRetryPolicy() &#123;</div><div class="line">        return mHttpRequest.getRetryPolicy();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求成功</div><div class="line">     *</div><div class="line">     * @param response The parsed response returned by</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    protected void deliverResponse(T response) &#123;</div><div class="line">        if (mHttpListener != null) &#123;</div><div class="line">            mHttpListener.onSuccess(response);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 请求失败</div><div class="line">     *</div><div class="line">     * @param error Error details</div><div class="line">     */</div><div class="line">    @Override</div><div class="line">    public void deliverError(VolleyError error) &#123;</div><div class="line">        if (mHttpListener != null) &#123;</div><div class="line">            mHttpListener.onError(error);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这里最重要的就是这个类了，下面详细的说一下，封装的过程:<br><strong>我们在前面定义了HttpRequest和HttpListener类就是为了在这里使用，在构造方法里面把这两个传递进来，然后请求需要的参数通过HttpRequest的一系列的get方法获取，请求最终的回调通过HttpListener传递出去。</strong></p>
+<p>首先来看HttpListener的最终的两个回调的方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">protected void deliverResponse(T response) &#123;</div><div class="line">    if (mHttpListener != null) &#123;</div><div class="line">        mHttpListener.onSuccess(response);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">@Override</div><div class="line">public void deliverError(VolleyError error) &#123;</div><div class="line">    if (mHttpListener != null) &#123;</div><div class="line">        mHttpListener.onError(error);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这两个方法一个是请求成功的方法，另外一个是请求失败的方法，我们通过HttpListener把最后的结果抛出去，这里可以统一实现，不需要子请求类再去实现了。</p>
+<p>再看其余的一些方法，getUrl方法是请求的url，但是我们在封装请求的时候不管是get还是post都是把参数放置getParams方法里面返回的，get请求是直接使用url拼接参数的，所以需要对这个方法进行重写，这样，才能保证get请求能有参数。</p>
+<p>getHeaders是请求头，这里直接使用HttpRequest获取到。</p>
+<p>getParams时请求的参数，也是直接通过HttpRequest拿到。</p>
+<p>其余的方法都是大同小异，总体来说这个封装也比较简单的。</p>
+<p>###四、各种方式的请求的重新实现<br>上面对Request进行了重新的封装之后，我们只需要继承RequestWrapper即可，并且，需要我们实现的方法也只有一个了，parseNetworkResponse。由于我们队Request进行了封装，所以Volley自己带的几个请求，如JsonRequest，StringRequest等，都需要重写，继承RequestWrapper，但是，经过我们的封装，重写不会很麻烦。<br>这里只举两个例子，一个ByteRequest:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok.request;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok.request &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/23 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; Byte Request &lt;br&gt;</div><div class="line"> */</div><div class="line">public class ByteRequest extends RequestWrapper&lt;byte[]&gt; &#123;</div><div class="line"></div><div class="line">    public ByteRequest(HttpRequest httpRequest, HttpListener&lt;byte[]&gt; listener) &#123;</div><div class="line">        super(httpRequest, listener);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    protected Response&lt;byte[]&gt; parseNetworkResponse(NetworkResponse response) &#123;</div><div class="line">        return Response.success(response.data, HttpHeaderParser.parseCacheHeaders(response));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到经过我们的封装之后，实现变得非常简单了。</p>
+<p>GsonRequest:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok.request;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok.request &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/23 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; Gson Request &lt;br&gt;</div><div class="line"> */</div><div class="line">public class GsonRequest&lt;T&gt; extends RequestWrapper&lt;T&gt; &#123;</div><div class="line"></div><div class="line">    private static Gson mGson = new Gson();</div><div class="line">    private Class&lt;T&gt; mClass;</div><div class="line">    private TypeToken&lt;T&gt; mTypeToken;</div><div class="line"></div><div class="line">    public GsonRequest(Class&lt;T&gt; tClass, HttpRequest httpRequest, HttpListener&lt;T&gt; listener) &#123;</div><div class="line">        this(tClass, null, httpRequest, listener);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public GsonRequest(Class&lt;T&gt; tClass, TypeToken&lt;T&gt; typeToken,</div><div class="line">                       HttpRequest httpRequest, HttpListener&lt;T&gt; listener) &#123;</div><div class="line">        super(httpRequest, listener);</div><div class="line">        mClass = tClass;</div><div class="line">        mTypeToken = typeToken;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">    @Override</div><div class="line">    protected Response&lt;T&gt; parseNetworkResponse(NetworkResponse response) &#123;</div><div class="line">        try &#123;</div><div class="line">            String json = new String(</div><div class="line">                    response.data, HttpHeaderParser.parseCharset(response.headers, getParamsEncoding()));</div><div class="line">            if (mTypeToken == null) &#123;</div><div class="line">                return Response.success(</div><div class="line">                        mGson.fromJson(json, mClass), HttpHeaderParser.parseCacheHeaders(response));</div><div class="line">            &#125; else &#123;</div><div class="line">                return (Response&lt;T&gt;) Response.success(</div><div class="line">                        mGson.fromJson(json, mTypeToken.getType()), HttpHeaderParser.parseCacheHeaders(response));</div><div class="line">            &#125;</div><div class="line">        &#125; catch (UnsupportedEncodingException e) &#123;</div><div class="line">            return Response.error(new ParseError(e));</div><div class="line">        &#125; catch (JsonSyntaxException e) &#123;</div><div class="line">            return Response.error(new ParseError(e));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这里只贴出这两个方法，还有的方法可以看<a href="https://github.com/qingyongai/VolleyOkExtension" target="_blank" rel="external">github</a>。</p>
+<p>###五、统一请求的实现<br>请求都封装好了，现在只有调用了，针对封装的6种请求可以封装一个接口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/23 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; 请求 &lt;br&gt;</div><div class="line"> */</div><div class="line">public interface IHttpClient &#123;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * byte请求</div><div class="line">     */</div><div class="line">    Request byteRequest(HttpRequest httpRequest, HttpListener&lt;byte[]&gt; listener, Object tag);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * String请求</div><div class="line">     */</div><div class="line">    Request stringRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener, Object tag);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * gzip请求</div><div class="line">     */</div><div class="line">    Request gZipRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener, Object tag);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * JsonObject请求</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    Request jsonObjectRequest(String requestBody, HttpRequest httpRequest, HttpListener&lt;JSONObject&gt; listener, Object tag);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * JsonArray请求</div><div class="line">     */</div><div class="line">    Request jsonArrayRequest(String requestBody, HttpRequest httpRequest, HttpListener&lt;JSONArray&gt; listener, Object tag);</div><div class="line"></div><div class="line">    /**</div><div class="line">     * Gson请求，可以映射Model</div><div class="line">     */</div><div class="line">    &lt;T&gt; Request gsonRequest(Class&lt;T&gt; tClass, TypeToken&lt;T&gt; typeToken, HttpRequest httpRequest, HttpListener&lt;T&gt; listener, Object tag);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>然后再写一个具体的实现类即可。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div></pre></td><td class="code"><pre><div class="line">package com.yong.volleyok;</div><div class="line"></div><div class="line">/**</div><div class="line"> * &lt;b&gt;Project:&lt;/b&gt; com.yong.volleyok.http &lt;br&gt;</div><div class="line"> * &lt;b&gt;Create Date:&lt;/b&gt; 2016/4/23 &lt;br&gt;</div><div class="line"> * &lt;b&gt;Author:&lt;/b&gt; qingyong &lt;br&gt;</div><div class="line"> * &lt;b&gt;Description:&lt;/b&gt; 请求的具体实现类 &lt;br&gt;</div><div class="line"> */</div><div class="line">public class HttpClient implements IHttpClient &#123;</div><div class="line"></div><div class="line">    private static HttpClient INSTANCE;</div><div class="line">    private static final int[] sLock = new int[0];</div><div class="line"></div><div class="line">    private final RequestQueue mRequestQueue;</div><div class="line">    private final Context mContext;</div><div class="line"></div><div class="line">    private HttpClient(Context context) &#123;</div><div class="line">        mContext = context;</div><div class="line">        mRequestQueue = Volley.newRequestQueue(context,</div><div class="line">                new OkHttp3Stack(new OkHttpClient()));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 这里使用Application的Context</div><div class="line">     *</div><div class="line">     * @param context</div><div class="line">     * @return</div><div class="line">     */</div><div class="line">    public static HttpClient getInstance(Context context) &#123;</div><div class="line">        if (null == INSTANCE) &#123;</div><div class="line">            synchronized (sLock) &#123;</div><div class="line">                if (null == INSTANCE) &#123;</div><div class="line">                    INSTANCE = new HttpClient(context);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return INSTANCE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 添加请求</div><div class="line">     *</div><div class="line">     * @param request</div><div class="line">     */</div><div class="line">    public void addRequest(Request request, Object tag) &#123;</div><div class="line">        if (tag != null) &#123;</div><div class="line">            request.setTag(tag);</div><div class="line">        &#125;</div><div class="line">        mRequestQueue.add(request);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 取消请求</div><div class="line">     *</div><div class="line">     * @param tag</div><div class="line">     */</div><div class="line">    public void cancelRequest(Object tag) &#123;</div><div class="line">        mRequestQueue.cancelAll(tag);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request ByteRequest(HttpRequest httpRequest, HttpListener&lt;byte[]&gt; listener) &#123;</div><div class="line">        return byteRequest(httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public Request byteRequest(HttpRequest httpRequest, HttpListener&lt;byte[]&gt; listener, Object tag) &#123;</div><div class="line">        ByteRequest request = new ByteRequest(httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request stringRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener) &#123;</div><div class="line">        return stringRequest(httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public Request stringRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener, Object tag) &#123;</div><div class="line">        StringRequest request = new StringRequest(httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request gZipRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener) &#123;</div><div class="line">        return gZipRequest(httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public Request gZipRequest(HttpRequest httpRequest, HttpListener&lt;String&gt; listener, Object tag) &#123;</div><div class="line">        GZipRequest request = new GZipRequest(httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request jsonObjectRequest(HttpRequest httpRequest, HttpListener&lt;JSONObject&gt; listener) &#123;</div><div class="line">        return jsonObjectRequest(null, httpRequest, listener);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request jsonObjectRequest(String requestBody, HttpRequest httpRequest, HttpListener&lt;JSONObject&gt; listener) &#123;</div><div class="line">        return jsonObjectRequest(requestBody, httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public Request jsonObjectRequest(String requestBody, HttpRequest httpRequest, HttpListener&lt;JSONObject&gt; listener, Object tag) &#123;</div><div class="line">        JsonObjectRequest request = new JsonObjectRequest(requestBody, httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request jsonArrayRequest(HttpRequest httpRequest, HttpListener&lt;JSONArray&gt; listener) &#123;</div><div class="line">        return jsonArrayRequest(httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public Request jsonArrayRequest(HttpRequest httpRequest, HttpListener&lt;JSONArray&gt; listener, Object tag) &#123;</div><div class="line">        return jsonArrayRequest(null, httpRequest, listener, tag);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public Request jsonArrayRequest(String requestBody, HttpRequest httpRequest, HttpListener&lt;JSONArray&gt; listener, Object tag) &#123;</div><div class="line">        JsonArrayRequest request = new JsonArrayRequest(requestBody, httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public &lt;T&gt; Request gsonRequest(Class&lt;T&gt; tClass, HttpRequest httpRequest, HttpListener&lt;T&gt; listener) &#123;</div><div class="line">        return gsonRequest(tClass, httpRequest, listener, null);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public &lt;T&gt; Request gsonRequest(Class&lt;T&gt; tClass, HttpRequest httpRequest, HttpListener&lt;T&gt; listener, Object tag) &#123;</div><div class="line">        return gsonRequest(tClass, null, httpRequest, listener, tag);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public &lt;T&gt; Request gsonRequest(Class&lt;T&gt; tClass, TypeToken&lt;T&gt; typeToken,</div><div class="line">                                   HttpRequest httpRequest, HttpListener&lt;T&gt; listener, Object tag) &#123;</div><div class="line">        GsonRequest&lt;T&gt; request = new GsonRequest&lt;T&gt;(tClass, typeToken, httpRequest, listener);</div><div class="line">        addRequest(request, tag);</div><div class="line">        return request;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>六、使用<br>当然使用也非常简单，看HttpClient就知道有哪些方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">mResult = (TextView) findViewById(R.id.result);</div><div class="line">mHttpClient = HttpUtil.getHttpClient();</div><div class="line">HttpRequest request = new HttpRequest.Builder(&quot;http://www.mocky.io/v2/571b3c270f00001a0faddfcc&quot;)</div><div class="line">        .setMethod(Request.Method.GET)</div><div class="line">        .build();</div><div class="line">mHttpClient.stringRequest(request, new HttpListener&lt;String&gt;() &#123;</div><div class="line">    @Override</div><div class="line">    public void onSuccess(String result) &#123;</div><div class="line">        Log.e(&quot;TAG&quot;, result);</div><div class="line">        mResult.setText(result);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void onError(VolleyError error) &#123;</div><div class="line">        mResult.setText(error.getMessage());</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
+<p>库和Demo地址:<br><a href="https://github.com/qingyongai/VolleyOkExtension" target="_blank" rel="external">https://github.com/qingyongai/VolleyOkExtension</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Volley/" rel="tag">#Volley</a>
+          
+            <a href="/tags/OKHttp3/" rel="tag">#OKHttp3</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/22/Android自定义属性为应用程序设置全局背景/" rel="next" title="Android自定义属性为应用程序设置全局背景">
+                <i class="fa fa-chevron-left"></i> Android自定义属性为应用程序设置全局背景
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/25/WebView与Java的相互调用/" rel="prev" title="WebView与Java的相互调用">
+                WebView与Java的相互调用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/"
+           data-title="Android Volley + OkHttp3 + Gson 开源库的封装" data-url="http://www.qingyongai.com/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
