@@ -1,0 +1,815 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="HotFix," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Android ClassLoader前言这次博客会分两篇，这篇介绍各个Android版本是怎么反射加载生成的patch文件的，下篇会详细的分析class对比和patch的生成。
+写这次文章的原因是因为最近在研究热修复，发现其实他们实现的代码很少，其实就一个类，然后里面针对不同的版本做反射处理，就想好好找找不同版本的对于类加载的机制。其次呢，关于bug版本和修复版本的class文件对比，dex的p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="热修复探究（一）">
+<meta property="og:url" content="http://www.qingyongai.com/2016/07/27/热修复探究（一）/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="Android ClassLoader前言这次博客会分两篇，这篇介绍各个Android版本是怎么反射加载生成的patch文件的，下篇会详细的分析class对比和patch的生成。
+写这次文章的原因是因为最近在研究热修复，发现其实他们实现的代码很少，其实就一个类，然后里面针对不同的版本做反射处理，就想好好找找不同版本的对于类加载的机制。其次呢，关于bug版本和修复版本的class文件对比，dex的p">
+<meta property="og:updated_time" content="2017-06-26T15:39:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="热修复探究（一）">
+<meta name="twitter:description" content="Android ClassLoader前言这次博客会分两篇，这篇介绍各个Android版本是怎么反射加载生成的patch文件的，下篇会详细的分析class对比和patch的生成。
+写这次文章的原因是因为最近在研究热修复，发现其实他们实现的代码很少，其实就一个类，然后里面针对不同的版本做反射处理，就想好好找找不同版本的对于类加载的机制。其次呢，关于bug版本和修复版本的class文件对比，dex的p">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 热修复探究（一） | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                热修复探究（一）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-27T23:15:40+08:00" content="2016-07-27">
+              2016-07-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/HotFix/" itemprop="url" rel="index">
+                    <span itemprop="name">HotFix</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/27/热修复探究（一）/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/27/热修复探究（一）/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/07/27/热修复探究（一）/" class="leancloud_visitors" data-flag-title="热修复探究（一）">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Android-ClassLoader"><a href="#Android-ClassLoader" class="headerlink" title="Android ClassLoader"></a>Android ClassLoader</h3><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这次博客会分两篇，这篇介绍各个Android版本是怎么反射加载生成的patch文件的，下篇会详细的分析class对比和patch的生成。</p>
+<p>写这次文章的原因是因为最近在研究热修复，发现其实他们实现的代码很少，其实就一个类，然后里面针对不同的版本做反射处理，就想好好找找不同版本的对于类加载的机制。<br>其次呢，关于bug版本和修复版本的class文件对比，dex的patch文件生成的脚本也想了解一下。</p>
+<h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>首先Android中加载类一般使用的是<code>PathClassLoader</code>和<code>DexClassLoader</code>。<br>区别:<br><code>PathClassLoader</code></p>
+<ul>
+<li>Android uses this class for its system class loader and for its application class<br>loader(s).</li>
+</ul>
+<p>可以看出，Android是使用这个类作为其系统类和应用类的加载器。并且对于这个类呢，只能去加载已经安装到Android系统中的apk文件。</p>
+<p><code>DexClassLoader</code></p>
+<ul>
+<li>A class loader that loads classes from {@code .jar} and {@code .apk} files<br>containing a {@code classes.dex} entry. This can be used to execute code not<br>installed as part of an application.</li>
+</ul>
+<p>可以看出，该类可以用来从.jar和.apk类型的文件内部加载classes.dex文件。可以用来执行非安装的程序代码。</p>
+<p><code>DexClassLoader</code><br>构造函数：DexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent)</p>
+<ul>
+<li>dexPath:被解压的dex路径，不能为空。</li>
+<li>optimizedDirectory：解压后的.dex文件的存储路径，不能为空。这个路径强烈建议使用应用程序的私有路径，不要放到sdcard上，否则代码容易被注入攻击。</li>
+<li>libraryPath：so库的存放路径，可以为空，若有so库，必须填写。</li>
+<li>parent：父亲加载器，一般为context.getClassLoader(),使用当前上下文的类加载器。</li>
+</ul>
+<a id="more"></a>
+<h3 id="不同版本的不同实现"><a href="#不同版本的不同实现" class="headerlink" title="不同版本的不同实现"></a>不同版本的不同实现</h3><p>我们会发现，根本找不到源代码，那其实代码在android_libcore里面。<br><a href="https://github.com/Evervolv/android_libcore" target="_blank" rel="external">https://github.com/Evervolv/android_libcore</a><br>这个库里面可以找到不同版本的lib_core的实现。</p>
+<h4 id="Gingerbread-2-3-9"><a href="#Gingerbread-2-3-9" class="headerlink" title="Gingerbread 2.3 9"></a>Gingerbread 2.3 9</h4><p>首先看<strong>Gingerbread</strong>的实现，在2.3的时候PathClassLoader和DexClassLoader是分别实现的。着重看findClass方法。<br>PathClassLoader<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">private final String path;</div><div class="line"></div><div class="line">private final String[] mPaths;</div><div class="line">private final File[] mFiles;</div><div class="line">private final ZipFile[] mZips;</div><div class="line">private final DexFile[] mDexs;</div><div class="line"></div><div class="line">@Override  protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException  &#123;</div><div class="line">    byte[] data = null;</div><div class="line">    int length = mPaths.length;</div><div class="line">    for (int i = 0; i &lt; length; i++) &#123;</div><div class="line">      if (mDexs[i] != null) &#123;</div><div class="line">      Class clazz = mDexs[i].loadClassBinaryName(name, this);</div><div class="line">      if (clazz != null)</div><div class="line">        return clazz;</div><div class="line">      &#125; else if (mZips[i] != null) &#123;</div><div class="line">      String fileName = name.replace(&apos;.&apos;, &apos;/&apos;) + &quot;.class&quot;;</div><div class="line">      data = loadFromArchive(mZips[i], fileName);</div><div class="line">      &#125; else &#123;</div><div class="line">      File pathFile = mFiles[i];</div><div class="line">      if (pathFile.isDirectory()) &#123;</div><div class="line">        String fileName =  mPaths[i] + &quot;/&quot; +</div><div class="line">        name.replace(&apos;.&apos;, &apos;/&apos;) + &quot;.class&quot;;</div><div class="line">        data = loadFromDirectory(fileName);</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">throw new ClassNotFoundException(name + &quot; in loader &quot; + this);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>The entries of the second list should be directories containing</li>
+<li>native library files. Both lists are separated using the</li>
+<li>character specified by the “path.separator” system property,</li>
+<li>which, on Android, defaults to “:”.<br>里面有这段内容，就是说，dex文件路径存储在path里面，以分隔符分开，在Android里面分隔符是”:”。</li>
+</ul>
+<p>这里其实只能对mDexs[]处理，其余的zip，files并不能处理，后面有注释说明，详细的可以看源代码。</p>
+<p>DexClassLoader<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">private final File[] mFiles; // source file Files, for rsrc URLs</div><div class="line">private final ZipFile[] mZips; // source zip files, with resources</div><div class="line">private final DexFile[] mDexs; // opened, prepped DEX files</div><div class="line"></div><div class="line">protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException &#123;</div><div class="line"></div><div class="line">    int length = mFiles.length;</div><div class="line">    for (int i = 0; i &lt; length; i++) &#123;</div><div class="line">        if (mDexs[i] != null) &#123;</div><div class="line">            String slashName = name.replace(&apos;.&apos;, &apos;/&apos;);</div><div class="line">            Class clazz = mDexs[i].loadClass(slashName, this);</div><div class="line">            if (clazz != null) &#123;</div><div class="line">                if (VERBOSE_DEBUG)</div><div class="line">                    System.out.println(&quot;    found&quot;);</div><div class="line">                return clazz;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    throw new ClassNotFoundException(name + &quot; in loader &quot; + this);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到也只是可以从加载进来的dex文件里面找Class。</p>
+<p>所以，热修复对他的反射处理如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Installer for platform versions 4 to 13.</div><div class="line"> */</div><div class="line"> private static final class V4 &#123;</div><div class="line"></div><div class="line">    private static void install(ClassLoader loader, List&lt;File&gt; additionalClassPathEntries)</div><div class="line">            throws IllegalArgumentException, IllegalAccessException,</div><div class="line">            NoSuchFieldException, IOException &#123;</div><div class="line">        /* The patched class loader is expected to be a descendant</div><div class="line">         * of dalvik.system.DexClassLoader. We modify its fields mPaths,</div><div class="line">         * mFiles, mZips and mDexs to append additional DEX file entries.</div><div class="line">        */</div><div class="line">        int extraSize = additionalClassPathEntries.size();</div><div class="line">        Field pathField = findField(loader, &quot;path&quot;);</div><div class="line">        // 旧的path</div><div class="line">  StringBuilder path = new StringBuilder((String) pathField.get(loader));</div><div class="line">        String[] extraPaths = new String[extraSize];</div><div class="line">        File[] extraFiles = new File[extraSize];</div><div class="line">        ZipFile[] extraZips = new ZipFile[extraSize];</div><div class="line">        DexFile[] extraDexs = new DexFile[extraSize];</div><div class="line">        for (ListIterator&lt;File&gt; iterator = additionalClassPathEntries.listIterator();</div><div class="line">             iterator.hasNext(); ) &#123;</div><div class="line">            File additionalEntry = iterator.next();</div><div class="line"></div><div class="line">            // 添加新的dex文件路径到path里面</div><div class="line">  String entryPath = additionalEntry.getAbsolutePath();</div><div class="line">            path.append(&apos;:&apos;).append(entryPath);</div><div class="line"></div><div class="line">            int index = iterator.previousIndex();</div><div class="line">            extraPaths[index] = entryPath; // paths</div><div class="line">  extraFiles[index] = additionalEntry; // files</div><div class="line">  extraZips[index] = new ZipFile(additionalEntry); // zipfiles</div><div class="line">  extraDexs[index] = DexFile.loadDex(entryPath, entryPath + &quot;.dex&quot;, 0); // dexfiles</div><div class="line">  &#125;</div><div class="line">        // 重新设置path</div><div class="line">  pathField.set(loader, path.toString());</div><div class="line">        // 重新设置mPaths，mFiles，mZips，mDexs</div><div class="line">  expandFieldArray(loader, &quot;mPaths&quot;, extraPaths);</div><div class="line">        expandFieldArray(loader, &quot;mFiles&quot;, extraFiles);</div><div class="line">        expandFieldArray(loader, &quot;mZips&quot;, extraZips);</div><div class="line">        expandFieldArray(loader, &quot;mDexs&quot;, extraDexs);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>实现即是这样的，其实很简单啦，就是把patch的dex文件路径加到path里面，再使用反射修改掉里面的四个字段，重新赋值。</p>
+<h4 id="Ice-4-0-14"><a href="#Ice-4-0-14" class="headerlink" title="Ice 4.0 14"></a>Ice 4.0 14</h4><p>然后<strong>Ice</strong>的实现，看在4.0的具体实现。在4.0以后DexClassLoader和PathClassLoader都继承了BaseDexClassLoader，处理的代码都在BaseDexClassLoader里面。<br>BaseDexClassLoader<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException &#123;</div><div class="line">    Class clazz = pathList.findClass(name);</div><div class="line">    if (clazz == null) &#123;</div><div class="line">        throw new ClassNotFoundException(name);</div><div class="line">    &#125;</div><div class="line">    return clazz;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>代码很简洁，可以看到findClass是使用的DexPathList的实例，pathList去找到对应的class。<br>DexPathList里面的findClass<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public Class findClass(String name) &#123;</div><div class="line">    for (Element element : dexElements) &#123;</div><div class="line">        DexFile dex = element.dexFile;</div><div class="line">        if (dex != null) &#123;</div><div class="line">            Class clazz = dex.loadClassBinaryName(name, definingContext);</div><div class="line">            if (clazz != null) &#123;</div><div class="line">                return clazz;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return null;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从dexElements里面寻找，所以需要使用反射修改掉dexElements，即dex数组文件。<br>相关实现如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Installer for platform versions 14, 15, 16, 17 and 18.</div><div class="line"> */</div><div class="line"> private static final class V14 &#123;</div><div class="line">    private static void install(ClassLoader loader, List&lt;File&gt; additionalClassPathEntries, File optimizedDirectory)</div><div class="line">            throws IllegalArgumentException, IllegalAccessException,</div><div class="line">            NoSuchFieldException, InvocationTargetException, NoSuchMethodException &#123;</div><div class="line">        /* The patched class loader is expected to be a descendant</div><div class="line">        of dalvik.system.BaseDexClassLoader. We modify its</div><div class="line">        dalvik.system.DexPathList pathList field to append additional</div><div class="line">        DEX file entries.</div><div class="line">        */</div><div class="line">        Field pathListField = findField(loader, &quot;pathList&quot;);</div><div class="line">        Object dexPathList = pathListField.get(loader);</div><div class="line">        expandFieldArray(dexPathList, &quot;dexElements&quot;,</div><div class="line">        makeDexElements(dexPathList,</div><div class="line">           new ArrayList&lt;File&gt;(additionalClassPathEntries),</div><div class="line">                optimizedDirectory));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">/**</div><div class="line"> * A wrapper around &#123;@code private static final</div><div class="line"> dalvik.system.DexPathList#makeDexElements&#125;.</div><div class="line"> */</div><div class="line"> private static Object[] makeDexElements(</div><div class="line">        Object dexPathList, ArrayList&lt;File&gt; files, File</div><div class="line">        optimizedDirectory)</div><div class="line">            throws IllegalAccessException, InvocationTargetException,</div><div class="line">            NoSuchMethodException &#123;</div><div class="line">        Method makeDexElements =</div><div class="line">                findMethod(dexPathList, &quot;makeDexElements&quot;,</div><div class="line">                ArrayList.class, File.class);</div><div class="line">        return (Object[]) makeDexElements.invoke</div><div class="line">        (dexPathList, files, optimizedDirectory);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>实现也挺简单，直接把我们要加的dex文件添加dexElements数组的最前面即可。</p>
+<h4 id="kitkat-4-4-19"><a href="#kitkat-4-4-19" class="headerlink" title="kitkat 4.4 19"></a>kitkat 4.4 19</h4><p>BaseDexClassLoader<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException &#123;</div><div class="line">    List&lt;Throwable&gt; suppressedExceptions = new ArrayList&lt;Throwable&gt;();</div><div class="line">    Class c = pathList.findClass(name, suppressedExceptions);</div><div class="line">    if (c == null) &#123;</div><div class="line">        ClassNotFoundException cnfe = new ClassNotFoundException(&quot;Didn&apos;t find class \&quot;&quot; + name + &quot;\&quot; on path: &quot; + pathList);</div><div class="line">        for (Throwable t : suppressedExceptions) &#123;</div><div class="line">            cnfe.addSuppressed(t);</div><div class="line">        &#125;</div><div class="line">        throw cnfe;</div><div class="line">    &#125;</div><div class="line">    return c;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>DexPathList<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public Class findClass(String name, List&lt;Throwable&gt; suppressed) &#123;</div><div class="line">    for (Element element : dexElements) &#123;</div><div class="line">        DexFile dex = element.dexFile;</div><div class="line">        if (dex != null) &#123;</div><div class="line">          Class clazz = dex.loadClassBinaryName(name, definingContext,</div><div class="line">            suppressed);</div><div class="line">            if (clazz != null) &#123;</div><div class="line">                return clazz;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    if (dexElementsSuppressedExceptions != null) &#123;</div><div class="line">       suppressed.addAll(Arrays.asList(dexElementsSuppressedExceptions));</div><div class="line">    &#125;</div><div class="line">    return null;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到只是新增了一些异常，合成dex文件的时候需要传递多一个参数用来存储找寻每个dex文件发生异常IO信息。<br>对应的处理:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Installer for platform versions 19.</div><div class="line"> */</div><div class="line"> private static final class V19 &#123;</div><div class="line"></div><div class="line">    private static void install(ClassLoader loader, List&lt;File&gt;</div><div class="line">    additionalClassPathEntries, File optimizedDirectory)</div><div class="line">            throws IllegalArgumentException, IllegalAccessException,</div><div class="line">            NoSuchFieldException, InvocationTargetException,</div><div class="line">            NoSuchMethodException &#123;</div><div class="line">        /* The patched class loader is expected to be a descendant of</div><div class="line">         * dalvik.system.BaseDexClassLoader. We modify its</div><div class="line">         * dalvik.system.DexPathList pathList field to append additional</div><div class="line">         * DEX file entries.</div><div class="line">         */</div><div class="line">        Field pathListField = findField(loader, &quot;pathList&quot;);</div><div class="line">        Object dexPathList = pathListField.get(loader);</div><div class="line">        ArrayList&lt;IOException&gt; suppressedExceptions = new</div><div class="line">        ArrayList&lt;IOException&gt;();</div><div class="line">        expandFieldArray(dexPathList, &quot;dexElements&quot;,</div><div class="line">        makeDexElements(dexPathList,</div><div class="line">        new ArrayList&lt;File&gt;(additionalClassPathEntries),</div><div class="line">        optimizedDirectory, suppressedExceptions));</div><div class="line">        if (suppressedExceptions.size() &gt; 0) &#123;</div><div class="line">            for (IOException e : suppressedExceptions) &#123;</div><div class="line">                Log.w(TAG, &quot;Exception in makeDexElement&quot;, e);</div><div class="line">            &#125;</div><div class="line">            Field suppressedExceptionsField =</div><div class="line">                    findField(dexPathList, &quot;dexElementsSuppressedExceptions&quot;);</div><div class="line">            IOException[] dexElementsSuppressedExceptions =</div><div class="line">                    (IOException[]) suppressedExceptionsField.get(dexPathList);</div><div class="line"></div><div class="line">            if (dexElementsSuppressedExceptions == null) &#123;</div><div class="line">                dexElementsSuppressedExceptions =</div><div class="line">                        suppressedExceptions.toArray(</div><div class="line">                                new IOException[suppressedExceptions.size()]);</div><div class="line">            &#125; else &#123;</div><div class="line">                IOException[] combined =</div><div class="line">                        new IOException[suppressedExceptions.size() +</div><div class="line">                                dexElementsSuppressedExceptions.length];</div><div class="line">                suppressedExceptions.toArray(combined);</div><div class="line">                System.arraycopy(dexElementsSuppressedExceptions, 0, combined,</div><div class="line">                        suppressedExceptions.size(), dexElementsSuppressedExceptions.length);</div><div class="line">                dexElementsSuppressedExceptions = combined;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            suppressedExceptionsField.set(dexPathList, dexElementsSuppressedExceptions);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * A wrapper around</div><div class="line">     * &#123;@code private static final</div><div class="line">     dalvik.system.DexPathList#makeDexElements&#125;.</div><div class="line">     */</div><div class="line">     private static Object[] makeDexElements(</div><div class="line">            Object dexPathList, ArrayList&lt;File&gt; files, File optimizedDirectory,</div><div class="line">            ArrayList&lt;IOException&gt; suppressedExceptions)</div><div class="line">            throws IllegalAccessException, InvocationTargetException,</div><div class="line">            NoSuchMethodException &#123;</div><div class="line">        Method makeDexElements =</div><div class="line">                findMethod(dexPathList, &quot;makeDexElements&quot;, ArrayList.class, File.class,</div><div class="line">                        ArrayList.class);</div><div class="line"></div><div class="line">        return (Object[]) makeDexElements.invoke(dexPathList, files, optimizedDirectory,</div><div class="line">                suppressedExceptions);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>makeDexElements方法作了反射调用，并且如果找寻我们自己的新增dex出了问题也会去把做异常处理，最终会对dexElementsSuppressedExceptions这个异常数组做处理。<br>5.X的这部分代码并没有什么差别。</p>
+<p>关于6.0和7.0的，这里并没有代码，现在就不分析，找到代码会继续分析。其实思路很简单，一个版本一个版本的去对比findClass的实现的差别，然后调整反射调用的代码。</p>
+<p>具体可以看Github上面的两个开源库:<br><a href="https://github.com/bunnyblue/DroidFix" target="_blank" rel="external">https://github.com/bunnyblue/DroidFix</a></p>
+<p><a href="https://github.com/dodola/RocooFix" target="_blank" rel="external">https://github.com/dodola/RocooFix</a></p>
+<p>这里的代码都是取自那里，这篇文章分析热修复加载dex的部分，下篇会分析，CLASS_ISPREVERIFIED的实现，即class对比和patch的生成。</p>
+<p>关于6.X的，有看到源代码，发现和5.X的基本一样，不明白作者为什么在V19和V23使用了两种不同的反射方式去实现，可能是在实践中踩出来的经验吧。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/HotFix/" rel="tag">#HotFix</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/23/github下fork后如何同步源库的新更新内容/" rel="next" title="github下fork后如何同步源库的新更新内容?">
+                <i class="fa fa-chevron-left"></i> github下fork后如何同步源库的新更新内容?
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/02/热修复探究（二）/" rel="prev" title="热修复探究（二）">
+                热修复探究（二） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/07/27/热修复探究（一）/"
+           data-title="热修复探究（一）" data-url="http://www.qingyongai.com/2016/07/27/热修复探究（一）/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Android-ClassLoader"><span class="nav-number">1.</span> <span class="nav-text">Android ClassLoader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#区别"><span class="nav-number">3.</span> <span class="nav-text">区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不同版本的不同实现"><span class="nav-number">4.</span> <span class="nav-text">不同版本的不同实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Gingerbread-2-3-9"><span class="nav-number">4.1.</span> <span class="nav-text">Gingerbread 2.3 9</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ice-4-0-14"><span class="nav-number">4.2.</span> <span class="nav-text">Ice 4.0 14</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kitkat-4-4-19"><span class="nav-number">4.3.</span> <span class="nav-text">kitkat 4.4 19</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
