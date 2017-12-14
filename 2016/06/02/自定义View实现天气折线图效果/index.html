@@ -1,0 +1,791 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Custom View," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本次博客主要介绍一个天气效果的实现过程 最近公司的项目加入天气模块，需要实现下面的效果: 然后根据自己的构想实现了下面的效果: 下面会详细的介绍实现的过程。 1.构想思路其实在拿到设计的一个效果，我们首先要做的就是去思考，怎么实现，就算不好实现，也要实现一个折中的两边都可以妥协的方案。 由于当前是要展示10天以上的天气的情况，那么如果采用一个view绘制的形式肯定会影响到性能，那其实很快就想到了L">
+<meta name="keywords" content="Custom View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义View实现天气折线图效果">
+<meta property="og:url" content="http://www.qingyongai.com/2016/06/02/自定义View实现天气折线图效果/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="本次博客主要介绍一个天气效果的实现过程 最近公司的项目加入天气模块，需要实现下面的效果: 然后根据自己的构想实现了下面的效果: 下面会详细的介绍实现的过程。 1.构想思路其实在拿到设计的一个效果，我们首先要做的就是去思考，怎么实现，就算不好实现，也要实现一个折中的两边都可以妥协的方案。 由于当前是要展示10天以上的天气的情况，那么如果采用一个view绘制的形式肯定会影响到性能，那其实很快就想到了L">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83224707.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/def49910-d6c1-47e1-ad6c-2c91127daa79.gif">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83439984.png">
+<meta property="og:updated_time" content="2017-12-13T15:12:31.528Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自定义View实现天气折线图效果">
+<meta name="twitter:description" content="本次博客主要介绍一个天气效果的实现过程 最近公司的项目加入天气模块，需要实现下面的效果: 然后根据自己的构想实现了下面的效果: 下面会详细的介绍实现的过程。 1.构想思路其实在拿到设计的一个效果，我们首先要做的就是去思考，怎么实现，就算不好实现，也要实现一个折中的两边都可以妥协的方案。 由于当前是要展示10天以上的天气的情况，那么如果采用一个view绘制的形式肯定会影响到性能，那其实很快就想到了L">
+<meta name="twitter:image" content="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83224707.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 自定义View实现天气折线图效果 | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                自定义View实现天气折线图效果
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-06-02T00:00:40+08:00" content="2016-06-02">
+              2016-06-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/Custom-View/" itemprop="url" rel="index">
+                    <span itemprop="name">Custom View</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/06/02/自定义View实现天气折线图效果/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/02/自定义View实现天气折线图效果/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/06/02/自定义View实现天气折线图效果/" class="leancloud_visitors" data-flag-title="自定义View实现天气折线图效果">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="本次博客主要介绍一个天气效果的实现过程"><a href="#本次博客主要介绍一个天气效果的实现过程" class="headerlink" title="本次博客主要介绍一个天气效果的实现过程"></a>本次博客主要介绍一个天气效果的实现过程</h4><hr>
+<p>最近公司的项目加入天气模块，需要实现下面的效果:</p>
+<h2 id=""><a href="#" class="headerlink" title=""></a><img src="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83224707.png" alt="设计图"></h2><p>然后根据自己的构想实现了下面的效果:</p>
+<h2 id="-1"><a href="#-1" class="headerlink" title=""></a><img src="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/def49910-d6c1-47e1-ad6c-2c91127daa79.gif" alt="实现的效果图"></h2><p>下面会详细的介绍实现的过程。</p>
+<h3 id="1-构想思路"><a href="#1-构想思路" class="headerlink" title="1.构想思路"></a>1.构想思路</h3><p>其实在拿到设计的一个效果，我们首先要做的就是去思考，怎么实现，就算不好实现，也要实现一个折中的两边都可以妥协的方案。</p>
+<p>由于当前是要展示10天以上的天气的情况，那么如果采用一个view绘制的形式肯定会影响到性能，那其实很快就想到了ListView，这不就是一个横向的ListView的效果么，考虑到ListView并没有横向的效果，转而就想到了RecyclerView，RecyclerView的LinearLayoutManager可以直接设置为横向的，这解决了使用什么来实现的问题。</p>
+<h4 id="1-1最高温度和最低温度在View上面怎么绘制"><a href="#1-1最高温度和最低温度在View上面怎么绘制" class="headerlink" title="1.1最高温度和最低温度在View上面怎么绘制"></a>1.1最高温度和最低温度在View上面怎么绘制</h4><p>这个问题不是太难，可以这样，拿到这15天的最低温度和最高温度，这个需要我们计算，从这15个最高以及最低温度里面找到最大以及最小的，然后使用这两个温度差去映射View的高度，最后可以得到需要的绘制的圆点View的Y轴的计算公式:<br>$$需要在View上面绘制的高度 = \frac{(今天的温度-15天里面最低温度)View的高度}{15天里面最高温度-15天里面最低温度} $$</p>
+<h4 id="1-2折线在每个view的最左边个最右边的位置"><a href="#1-2折线在每个view的最左边个最右边的位置" class="headerlink" title="1.2折线在每个view的最左边个最右边的位置"></a>1.2折线在每个view的最左边个最右边的位置</h4><p>这个也很简单，用 $$\frac{昨天的温度+今天的温度}{2}$$<br>然后再经过上面的计算就可以得到需要绘制的Y轴的位置。</p>
+<a id="more"></a>
+<h3 id="2-具体实现"><a href="#2-具体实现" class="headerlink" title="2.具体实现"></a>2.具体实现</h3><h4 id="2-1WeatherLineView的实现"><a href="#2-1WeatherLineView的实现" class="headerlink" title="2.1WeatherLineView的实现"></a>2.1WeatherLineView的实现</h4><p>自定义WeatherLineView，需要下面的几个属性:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;declare-styleable name=&quot;WeatherLineView&quot;&gt;</span><br><span class="line">    &lt;!-- 文字大小 --&gt;</span><br><span class="line">    &lt;attr name=&quot;temperTextSize&quot; format=&quot;dimension&quot;/&gt;</span><br><span class="line">    &lt;!-- 文字的颜色 --&gt;</span><br><span class="line">    &lt;attr name=&quot;weatextColor&quot; format=&quot;color&quot;/&gt;</span><br><span class="line">    &lt;!-- 绘制的线的宽度 --&gt;</span><br><span class="line">    &lt;attr name=&quot;weaLineWidth&quot; format=&quot;dimension&quot;/&gt;</span><br><span class="line">    &lt;!-- 绘制的圆点的半径 --&gt;</span><br><span class="line">    &lt;attr name=&quot;weadotRadius&quot; format=&quot;dimension&quot;/&gt;</span><br><span class="line">    &lt;!-- 文字离圆点的距离 --&gt;</span><br><span class="line">    &lt;attr name=&quot;textDotDistance&quot; format=&quot;dimension&quot;/&gt;</span><br><span class="line">&lt;/declare-styleable&gt;</span><br></pre></td></tr></table></figure></p>
+<p>具体的实现:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br></pre></td><td class="code"><pre><span class="line">public class WeatherLineView extends View &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 默认最小宽度50dp</span><br><span class="line">     */</span><br><span class="line">    private static final int defaultMinWidth = 100;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 默认最小高度80dp</span><br><span class="line">     */</span><br><span class="line">    private static final int defaultMinHeight = 80;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 字体最小默认16dp</span><br><span class="line">     */</span><br><span class="line">    private int mTemperTextSize = 16;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 文字颜色</span><br><span class="line">     */</span><br><span class="line">    private int mWeaTextColor = Color.BLACK;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 线的宽度</span><br><span class="line">     */</span><br><span class="line">    private int mWeaLineWidth = 1;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 圆点的宽度</span><br><span class="line">     */</span><br><span class="line">    private int mWeaDotRadius = 5;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 文字和点的间距</span><br><span class="line">     */</span><br><span class="line">    private int mTextDotDistance = 5;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 画文字的画笔</span><br><span class="line">     */</span><br><span class="line">    private TextPaint mTextPaint;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 文字的FontMetrics</span><br><span class="line">     */</span><br><span class="line">    private Paint.FontMetrics mTextFontMetrics;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 画点的画笔</span><br><span class="line">     */</span><br><span class="line">    private Paint mDotPaint;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 画线的画笔</span><br><span class="line">     */</span><br><span class="line">    private Paint mLinePaint;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 15天最低温度的数据</span><br><span class="line">     */</span><br><span class="line">    private int mLowestTemperData;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 15天最高温度的数据</span><br><span class="line">     */</span><br><span class="line">    private int mHighestTemperData;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 分别代表最左边的，中间的，右边的三个当天最低温度值</span><br><span class="line">     */</span><br><span class="line">    private int mLowTemperData[];</span><br><span class="line"></span><br><span class="line">    private int mHighTemperData[];</span><br><span class="line"></span><br><span class="line">    public WeatherLineView(Context context) &#123;</span><br><span class="line">        this(context, null);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public WeatherLineView(Context context, AttributeSet attrs) &#123;</span><br><span class="line">        this(context, attrs, 0);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public WeatherLineView(Context context, AttributeSet attrs, int defStyleAttr) &#123;</span><br><span class="line">        super(context, attrs, defStyleAttr);</span><br><span class="line">        init(context, attrs, defStyleAttr);</span><br><span class="line">        initPaint();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 设置当天的三个低温度数据，中间的数据就是当天的最低温度数据，</span><br><span class="line">     * 第一个数据是当天和前天的数据加起来的平均数，</span><br><span class="line">     * 第二个数据是当天和明天的数据加起来的平均数</span><br><span class="line">     *</span><br><span class="line">     * @param low  最低温度</span><br><span class="line">     * @param high 最高温度</span><br><span class="line">     */</span><br><span class="line">    public void setLowHighData(int low[], int high[]) &#123;</span><br><span class="line">        mLowTemperData = low;</span><br><span class="line">        mHighTemperData = high;</span><br><span class="line">        invalidate();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 设置15天里面的最低和最高的温度数据</span><br><span class="line">     *</span><br><span class="line">     * @param low  最低温度</span><br><span class="line">     * @param high 最高温度</span><br><span class="line">     */</span><br><span class="line">    public void setLowHighestData(int low, int high) &#123;</span><br><span class="line">        mLowestTemperData = low;</span><br><span class="line">        mHighestTemperData = high;</span><br><span class="line">        invalidate();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 设置画笔信息</span><br><span class="line">     */</span><br><span class="line">    private void initPaint() &#123;</span><br><span class="line">        mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);</span><br><span class="line">        mTextPaint.setTextSize(mTemperTextSize);</span><br><span class="line">        mTextPaint.setColor(mWeaTextColor);</span><br><span class="line">        mTextFontMetrics = mTextPaint.getFontMetrics();</span><br><span class="line"></span><br><span class="line">        mDotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);</span><br><span class="line">        mDotPaint.setStyle(Paint.Style.FILL);</span><br><span class="line">        mDotPaint.setColor(mWeaTextColor);</span><br><span class="line"></span><br><span class="line">        mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);</span><br><span class="line">        mLinePaint.setStyle(Paint.Style.STROKE);</span><br><span class="line">        mLinePaint.setStrokeWidth(mWeaLineWidth);</span><br><span class="line">        mLinePaint.setColor(mWeaTextColor);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 获取自定义属性并赋初始值</span><br><span class="line">     */</span><br><span class="line">    private void init(Context context, AttributeSet attrs, int defStyleAttr) &#123;</span><br><span class="line">        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.WeatherLineView,</span><br><span class="line">                defStyleAttr, 0);</span><br><span class="line">        mTemperTextSize = (int) a.getDimension(R.styleable.WeatherLineView_temperTextSize,</span><br><span class="line">                dp2px(context, mTemperTextSize));</span><br><span class="line">        mWeaTextColor = a.getColor(R.styleable.WeatherLineView_weatextColor, Color.parseColor(&quot;#b07b5c&quot;));</span><br><span class="line">        mWeaLineWidth = (int) a.getDimension(R.styleable.WeatherLineView_weaLineWidth,</span><br><span class="line">                dp2px(context, mWeaLineWidth));</span><br><span class="line">        mWeaDotRadius = (int) a.getDimension(R.styleable.WeatherLineView_weadotRadius,</span><br><span class="line">                dp2px(context, mWeaDotRadius));</span><br><span class="line">        mTextDotDistance = (int) a.getDimension(R.styleable.WeatherLineView_textDotDistance,</span><br><span class="line">                dp2px(context, mTextDotDistance));</span><br><span class="line">        a.recycle();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) &#123;</span><br><span class="line">        int widthMode = MeasureSpec.getMode(widthMeasureSpec);</span><br><span class="line">        int widthSize = MeasureSpec.getSize(widthMeasureSpec);</span><br><span class="line">        int heightMode = MeasureSpec.getMode(heightMeasureSpec);</span><br><span class="line">        int heightSize = MeasureSpec.getSize(heightMeasureSpec);</span><br><span class="line">        int width = getSize(widthMode, widthSize, 0);</span><br><span class="line">        int height = getSize(heightMode, heightSize, 1);</span><br><span class="line">        setMeasuredDimension(width, height);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @param mode Mode</span><br><span class="line">     * @param size Size</span><br><span class="line">     * @param type 0表示宽度，1表示高度</span><br><span class="line">     * @return 宽度或者高度</span><br><span class="line">     */</span><br><span class="line">    private int getSize(int mode, int size, int type) &#123;</span><br><span class="line">        // 默认</span><br><span class="line">        int result;</span><br><span class="line">        if (mode == MeasureSpec.EXACTLY) &#123;</span><br><span class="line">            result = size;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            if (type == 0) &#123;</span><br><span class="line">                // 最小不能低于最小的宽度</span><br><span class="line">                result = dp2px(getContext(), defaultMinWidth) + getPaddingLeft() + getPaddingRight();</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // 最小不能小于最小的宽度加上一些数据</span><br><span class="line">                int textHeight = (int) (mTextFontMetrics.bottom - mTextFontMetrics.top);</span><br><span class="line">                // 加上2个文字的高度</span><br><span class="line">                result = dp2px(getContext(), defaultMinHeight) + 2 * textHeight +</span><br><span class="line">                        // 需要加上两个文字和圆点的间距</span><br><span class="line">                        getPaddingTop() + getPaddingBottom() + 2 * mTextDotDistance;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if (mode == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">                result = Math.min(result, size);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onDraw(Canvas canvas) &#123;</span><br><span class="line">        super.onDraw(canvas);</span><br><span class="line"></span><br><span class="line">        if (mLowTemperData == null || mHighTemperData == null</span><br><span class="line">                || mLowestTemperData == 0 || mHighestTemperData == 0) &#123;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        canvas.drawColor(Color.YELLOW);</span><br><span class="line"></span><br><span class="line">        // 文本的高度</span><br><span class="line">        int textHeight = (int) (mTextFontMetrics.bottom - mTextFontMetrics.top);</span><br><span class="line"></span><br><span class="line">        // 一个基本的高度，由于最下面的时候，有文字和圆点和文字的宽度需要留空间</span><br><span class="line">        int baseHeight = getHeight() - textHeight - mTextDotDistance;</span><br><span class="line"></span><br><span class="line">        // 最低温度相关</span><br><span class="line">        // 最低温度中间</span><br><span class="line">        int calowMiddle = baseHeight - cacHeight(mLowTemperData[1]);</span><br><span class="line">        canvas.drawCircle(getWidth() / 2, calowMiddle, mWeaDotRadius, mDotPaint);</span><br><span class="line"></span><br><span class="line">        // 画温度文字</span><br><span class="line">        String text = String.valueOf(mLowTemperData[1]) + &quot;°&quot;;</span><br><span class="line">        int baseX = (int) (canvas.getWidth() / 2 - mTextPaint.measureText(text) / 2);</span><br><span class="line">        // mTextFontMetrics.top为负的</span><br><span class="line">        // 需要加上文字高度和文字与圆点之间的空隙</span><br><span class="line">        int baseY = (int) (calowMiddle - mTextFontMetrics.top) + mTextDotDistance;</span><br><span class="line">        canvas.drawText(text, baseX, baseY, mTextPaint);</span><br><span class="line"></span><br><span class="line">        if (mLowTemperData[0] != 0) &#123;</span><br><span class="line">            // 最低温度左边</span><br><span class="line">            int calowLeft = baseHeight - cacHeight(mLowTemperData[0]);</span><br><span class="line">            canvas.drawLine(0, calowLeft, getWidth() / 2, calowMiddle, mLinePaint);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (mLowTemperData[2] != 0) &#123;</span><br><span class="line">            // 最低温度右边</span><br><span class="line">            int calowRight = baseHeight - cacHeight(mLowTemperData[2]);</span><br><span class="line">            canvas.drawLine(getWidth() / 2, calowMiddle, getWidth(), calowRight, mLinePaint);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 最高温度相关</span><br><span class="line">        // 最高温度中间</span><br><span class="line">        int calHighMiddle = baseHeight - cacHeight(mHighTemperData[1]);</span><br><span class="line">        canvas.drawCircle(getWidth() / 2, calHighMiddle, mWeaDotRadius, mDotPaint);</span><br><span class="line"></span><br><span class="line">        // 画温度文字</span><br><span class="line">        String text2 = String.valueOf(mHighTemperData[1]) + &quot;°&quot;;</span><br><span class="line">        int baseX2 = (int) (canvas.getWidth() / 2 - mTextPaint.measureText(text2) / 2);</span><br><span class="line">        int baseY2 = (int) (calHighMiddle - mTextFontMetrics.bottom) - mTextDotDistance;</span><br><span class="line">        canvas.drawText(text2, baseX2, baseY2, mTextPaint);</span><br><span class="line"></span><br><span class="line">        if (mHighTemperData[0] != 0) &#123;</span><br><span class="line">            // 最高温度左边</span><br><span class="line">            int calHighLeft = baseHeight - cacHeight(mHighTemperData[0]);</span><br><span class="line">            canvas.drawLine(0, calHighLeft, getWidth() / 2, calHighMiddle, mLinePaint);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (mHighTemperData[2] != 0) &#123;</span><br><span class="line">            // 最高温度右边</span><br><span class="line">            int calHighRight = baseHeight - cacHeight(mHighTemperData[2]);</span><br><span class="line">            canvas.drawLine(getWidth() / 2, calHighMiddle, getWidth(), calHighRight, mLinePaint);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private int cacHeight(int tem) &#123;</span><br><span class="line">        // 最低，最高温度之差</span><br><span class="line">        int temDistance = mHighestTemperData - mLowestTemperData;</span><br><span class="line">        int textHeight = (int) (mTextFontMetrics.bottom - mTextFontMetrics.top);</span><br><span class="line">        // view的最高和最低之差，需要减去文字高度和文字与圆点之间的空隙</span><br><span class="line">        int viewDistance = getHeight() - 2 * textHeight - 2 * mTextDotDistance;</span><br><span class="line">        // 今天的温度和最低温度之间的差别</span><br><span class="line">        int currTemDistance = tem - mLowestTemperData;</span><br><span class="line">        return currTemDistance * viewDistance / temDistance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static int dp2px(Context context, float dpVal) &#123;</span><br><span class="line">        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,</span><br><span class="line">                dpVal, context.getResources().getDisplayMetrics());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面就是折线的天气View，代码的注释比较详细了。</p>
+<h4 id="2-2RecyclerView的Item的布局"><a href="#2-2RecyclerView的Item的布局" class="headerlink" title="2.2RecyclerView的Item的布局"></a>2.2RecyclerView的Item的布局</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;LinearLayout</span><br><span class="line">    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">    android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">    android:orientation=&quot;horizontal&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;View</span><br><span class="line">        android:layout_width=&quot;0.5dp&quot;</span><br><span class="line">        android:layout_height=&quot;match_parent&quot;</span><br><span class="line">        android:background=&quot;#A04D4E&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;LinearLayout</span><br><span class="line">        android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">        android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">        android:orientation=&quot;vertical&quot;&gt;</span><br><span class="line"></span><br><span class="line">        &lt;View</span><br><span class="line">            android:layout_width=&quot;match_parent&quot;</span><br><span class="line">            android:layout_height=&quot;1dp&quot;</span><br><span class="line">            android:background=&quot;#A04D4E&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;TextView</span><br><span class="line">            android:id=&quot;@+id/id_day_text_tv&quot;</span><br><span class="line">            android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_gravity=&quot;center&quot;</span><br><span class="line">            android:layout_marginTop=&quot;10dp&quot;</span><br><span class="line">            android:text=&quot;多云&quot;</span><br><span class="line">            android:textSize=&quot;18sp&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;ImageView</span><br><span class="line">            android:id=&quot;@+id/id_day_icon_iv&quot;</span><br><span class="line">            android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_gravity=&quot;center&quot;</span><br><span class="line">            android:layout_marginTop=&quot;10dp&quot;</span><br><span class="line">            android:src=&quot;@drawable/wth_code_99&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;yong.qing.com.qimingview.weatherview.WeatherLineView</span><br><span class="line">            android:id=&quot;@+id/wea_line&quot;</span><br><span class="line">            android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_height=&quot;wrap_content&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;ImageView</span><br><span class="line">            android:id=&quot;@+id/id_night_icon_iv&quot;</span><br><span class="line">            android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_gravity=&quot;center&quot;</span><br><span class="line">            android:src=&quot;@drawable/wth_code_99&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;TextView</span><br><span class="line">            android:id=&quot;@+id/id_night_text_tv&quot;</span><br><span class="line">            android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">            android:layout_gravity=&quot;center&quot;</span><br><span class="line">            android:layout_marginBottom=&quot;10dp&quot;</span><br><span class="line">            android:layout_marginTop=&quot;10dp&quot;</span><br><span class="line">            android:text=&quot;多云&quot;</span><br><span class="line">            android:textSize=&quot;18sp&quot;/&gt;</span><br><span class="line"></span><br><span class="line">        &lt;View</span><br><span class="line">            android:layout_width=&quot;match_parent&quot;</span><br><span class="line">            android:layout_height=&quot;1dp&quot;</span><br><span class="line">            android:background=&quot;#A04D4E&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;/LinearLayout&gt;</span><br><span class="line"></span><br><span class="line">    &lt;View</span><br><span class="line">        android:layout_width=&quot;0.5dp&quot;</span><br><span class="line">        android:layout_height=&quot;match_parent&quot;</span><br><span class="line">        android:background=&quot;#A04D4E&quot;/&gt;</span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+<p>预览的效果是这样的:<br><img src="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83439984.png" alt="预览"><br>当然这里那些属性我没有加上去，因为代码里面有设置默认值，如果觉得不满足要求的话，可以自己设置。</p>
+<h4 id="2-3RecyclerView的adapter的实现"><a href="#2-3RecyclerView的adapter的实现" class="headerlink" title="2.3RecyclerView的adapter的实现"></a>2.3RecyclerView的adapter的实现</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">public class WeaDataAdapter extends RecyclerView.Adapter&lt;WeaDataAdapter.WeatherDataViewHolder&gt; &#123;</span><br><span class="line"></span><br><span class="line">    private Context mContext;</span><br><span class="line">    private LayoutInflater mInflater;</span><br><span class="line">    private List&lt;WeatherDailyModel&gt; mDatas;</span><br><span class="line">    private int mLowestTem;</span><br><span class="line">    private int mHighestTem;</span><br><span class="line"></span><br><span class="line">    public WeaDataAdapter(Context context, List&lt;WeatherDailyModel&gt; datats, int lowtem, int hightem) &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">        mInflater = LayoutInflater.from(context);</span><br><span class="line">        mDatas = datats;</span><br><span class="line">        mLowestTem = lowtem;</span><br><span class="line">        mHighestTem = hightem;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public WeatherDataViewHolder onCreateViewHolder(ViewGroup parent, int viewType) &#123;</span><br><span class="line">        View view = mInflater.inflate(R.layout.item_weather_item, parent, false);</span><br><span class="line">        WeatherDataViewHolder viewHolder = new WeatherDataViewHolder(view);</span><br><span class="line">        viewHolder.dayText = (TextView) view.findViewById(R.id.id_day_text_tv);</span><br><span class="line">        viewHolder.dayIcon = (ImageView) view.findViewById(R.id.id_day_icon_iv);</span><br><span class="line">        viewHolder.weatherLineView = (WeatherLineView) view.findViewById(R.id.wea_line);</span><br><span class="line">        viewHolder.nighticon = (ImageView) view.findViewById(R.id.id_night_icon_iv);</span><br><span class="line">        viewHolder.nightText = (TextView) view.findViewById(R.id.id_night_text_tv);</span><br><span class="line">        return viewHolder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onBindViewHolder(WeatherDataViewHolder holder, int position) &#123;</span><br><span class="line">        // 最低温度设置为15，最高温度设置为30</span><br><span class="line">        Resources resources = mContext.getResources();</span><br><span class="line">        WeatherDailyModel weatherModel = mDatas.get(position);</span><br><span class="line">        holder.dayText.setText(weatherModel.getText_day());</span><br><span class="line">        int iconday = resources.getIdentifier(&quot;wth_code_&quot; + weatherModel.getCode_day(), &quot;drawable&quot;, mContext.getPackageName());</span><br><span class="line">        if (iconday == 0) &#123;</span><br><span class="line">            holder.dayIcon.setImageResource(R.drawable.wth_code_99);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            holder.dayIcon.setImageResource(iconday);</span><br><span class="line">        &#125;</span><br><span class="line">        holder.weatherLineView.setLowHighestData(mLowestTem, mHighestTem);</span><br><span class="line">        int iconight = resources.getIdentifier(&quot;wth_code_&quot; + weatherModel.getCode_day(), &quot;drawable&quot;, mContext.getPackageName());</span><br><span class="line">        if (iconight == 0) &#123;</span><br><span class="line">            holder.nighticon.setImageResource(R.drawable.wth_code_99);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            holder.nighticon.setImageResource(iconight);</span><br><span class="line">        &#125;</span><br><span class="line">        holder.nightText.setText(weatherModel.getText_night());</span><br><span class="line">        int low[] = new int[3];</span><br><span class="line">        int high[] = new int[3];</span><br><span class="line">        low[1] = weatherModel.getLow();</span><br><span class="line">        high[1] = weatherModel.getHigh();</span><br><span class="line">        if (position &lt;= 0) &#123;</span><br><span class="line">            low[0] = 0;</span><br><span class="line">            high[0] = 0;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            WeatherDailyModel weatherModelLeft = mDatas.get(position - 1);</span><br><span class="line">            low[0] = (weatherModelLeft.getLow() + weatherModel.getLow()) / 2;</span><br><span class="line">            high[0] = (weatherModelLeft.getHigh() + weatherModel.getHigh()) / 2;</span><br><span class="line">        &#125;</span><br><span class="line">        if (position &gt;= mDatas.size() - 1) &#123;</span><br><span class="line">            low[2] = 0;</span><br><span class="line">            high[2] = 0;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            WeatherDailyModel weatherModelRight = mDatas.get(position + 1);</span><br><span class="line">            low[2] = (weatherModel.getLow() + weatherModelRight.getLow()) / 2;</span><br><span class="line">            high[2] = (weatherModel.getHigh() + weatherModelRight.getHigh()) / 2;</span><br><span class="line">        &#125;</span><br><span class="line">        holder.weatherLineView.setLowHighData(low, high);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int getItemCount() &#123;</span><br><span class="line">        return mDatas.size();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static class WeatherDataViewHolder extends RecyclerView.ViewHolder &#123;</span><br><span class="line"></span><br><span class="line">        TextView dayText;</span><br><span class="line">        ImageView dayIcon;</span><br><span class="line">        WeatherLineView weatherLineView;</span><br><span class="line">        ImageView nighticon;</span><br><span class="line">        TextView nightText;</span><br><span class="line"></span><br><span class="line">        public WeatherDataViewHolder(View itemView) &#123;</span><br><span class="line">            super(itemView);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Model里面的字段:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public static class WeatherDailyModel &#123;</span><br><span class="line">    /**</span><br><span class="line">     * date : 2016-05-30</span><br><span class="line">     * text_day : 多云</span><br><span class="line">     * code_day : 4</span><br><span class="line">     * text_night : 阴</span><br><span class="line">     * code_night : 9</span><br><span class="line">     * high : 34</span><br><span class="line">     * low : 22</span><br><span class="line">     */</span><br><span class="line">    private String date;</span><br><span class="line">    private String text_day;</span><br><span class="line">    private int code_day;</span><br><span class="line">    private String text_night;</span><br><span class="line">    private int code_night;</span><br><span class="line">    private int high;</span><br><span class="line">    private int low;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-4Activity里面获取数组设置到RecyclerView里面去"><a href="#2-4Activity里面获取数组设置到RecyclerView里面去" class="headerlink" title="2.4Activity里面获取数组设置到RecyclerView里面去"></a>2.4Activity里面获取数组设置到RecyclerView里面去</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private void initView() &#123;</span><br><span class="line">    //得到控件</span><br><span class="line">    mRecyclerView = (RecyclerView) findViewById(R.id.id_recyclerview_horizontal);</span><br><span class="line">    //设置布局管理器</span><br><span class="line">    LinearLayoutManager layoutManager = new LinearLayoutManager(this);</span><br><span class="line">    layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);</span><br><span class="line">    mRecyclerView.setLayoutManager(layoutManager);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">private void fillDatatoRecyclerView(List&lt;WeatherDailyModel&gt; daily) &#123;</span><br><span class="line">    mWeatherModels = daily;</span><br><span class="line">    Collections.sort(daily, new Comparator&lt;WeatherDailyModel&gt;() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public int compare(WeatherDailyModel lhs,</span><br><span class="line">                           WeatherDailyModel rhs) &#123;</span><br><span class="line">            // 排序找到温度最低的，按照最低温度升序排列</span><br><span class="line">            return lhs.getLow() - rhs.getLow();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    int low = daily.get(0).getLow();</span><br><span class="line"></span><br><span class="line">    Collections.sort(daily, new Comparator&lt;WeatherDailyModel&gt;() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public int compare(WeatherDailyModel lhs,</span><br><span class="line">                           WeatherDailyModel rhs) &#123;</span><br><span class="line">            // 排序找到温度最高的，按照最高温度降序排列</span><br><span class="line">            return rhs.getHigh() - lhs.getHigh();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    int high = daily.get(0).getHigh();</span><br><span class="line"></span><br><span class="line">    mWeaDataAdapter = new WeaDataAdapter(this, mWeatherModels, low, high);</span><br><span class="line">    mRecyclerView.setAdapter(mWeaDataAdapter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样其实就搞定了，WeatherLineView可能比较麻烦一点吧，但是只要是想清楚了，就很好了，从上面也看到WeatherLineView没什么含金量的，就是很普通的绘制。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Custom-View/" rel="tag">#Custom View</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/25/WebView与Java的相互调用/" rel="next" title="WebView与Java的相互调用">
+                <i class="fa fa-chevron-left"></i> WebView与Java的相互调用
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/12/View的事件分发/" rel="prev" title="View的事件分发">
+                View的事件分发 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/06/02/自定义View实现天气折线图效果/"
+           data-title="自定义View实现天气折线图效果" data-url="http://www.qingyongai.com/2016/06/02/自定义View实现天气折线图效果/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#本次博客主要介绍一个天气效果的实现过程"><span class="nav-number">1.</span> <span class="nav-text"><a href="#&#x672C;&#x6B21;&#x535A;&#x5BA2;&#x4E3B;&#x8981;&#x4ECB;&#x7ECD;&#x4E00;&#x4E2A;&#x5929;&#x6C14;&#x6548;&#x679C;&#x7684;&#x5B9E;&#x73B0;&#x8FC7;&#x7A0B;" class="headerlink" title="&#x672C;&#x6B21;&#x535A;&#x5BA2;&#x4E3B;&#x8981;&#x4ECB;&#x7ECD;&#x4E00;&#x4E2A;&#x5929;&#x6C14;&#x6548;&#x679C;&#x7684;&#x5B9E;&#x73B0;&#x8FC7;&#x7A0B;"></a>&#x672C;&#x6B21;&#x535A;&#x5BA2;&#x4E3B;&#x8981;&#x4ECB;&#x7ECD;&#x4E00;&#x4E2A;&#x5929;&#x6C14;&#x6548;&#x679C;&#x7684;&#x5B9E;&#x73B0;&#x8FC7;&#x7A0B;</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#"><span class="nav-number"></span> <span class="nav-text"><a href="#" class="headerlink" title=""></a><img src="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/83224707.png" alt="&#x8BBE;&#x8BA1;&#x56FE;"></span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#-1"><span class="nav-number"></span> <span class="nav-text"><a href="#-1" class="headerlink" title=""></a><img src="http://dd089a5b.wiz03.com/share/resources/27d53ba0-c23e-41a7-b357-d2e3a21af482/index_files/def49910-d6c1-47e1-ad6c-2c91127daa79.gif" alt="&#x5B9E;&#x73B0;&#x7684;&#x6548;&#x679C;&#x56FE;"></span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-构想思路"><span class="nav-number"></span> <span class="nav-text"><a href="#1-&#x6784;&#x60F3;&#x601D;&#x8DEF;" class="headerlink" title="1.&#x6784;&#x60F3;&#x601D;&#x8DEF;"></a>1.&#x6784;&#x60F3;&#x601D;&#x8DEF;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1最高温度和最低温度在View上面怎么绘制"><span class="nav-number">1.</span> <span class="nav-text"><a href="#1-1&#x6700;&#x9AD8;&#x6E29;&#x5EA6;&#x548C;&#x6700;&#x4F4E;&#x6E29;&#x5EA6;&#x5728;View&#x4E0A;&#x9762;&#x600E;&#x4E48;&#x7ED8;&#x5236;" class="headerlink" title="1.1&#x6700;&#x9AD8;&#x6E29;&#x5EA6;&#x548C;&#x6700;&#x4F4E;&#x6E29;&#x5EA6;&#x5728;View&#x4E0A;&#x9762;&#x600E;&#x4E48;&#x7ED8;&#x5236;"></a>1.1&#x6700;&#x9AD8;&#x6E29;&#x5EA6;&#x548C;&#x6700;&#x4F4E;&#x6E29;&#x5EA6;&#x5728;View&#x4E0A;&#x9762;&#x600E;&#x4E48;&#x7ED8;&#x5236;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2折线在每个view的最左边个最右边的位置"><span class="nav-number">2.</span> <span class="nav-text"><a href="#1-2&#x6298;&#x7EBF;&#x5728;&#x6BCF;&#x4E2A;view&#x7684;&#x6700;&#x5DE6;&#x8FB9;&#x4E2A;&#x6700;&#x53F3;&#x8FB9;&#x7684;&#x4F4D;&#x7F6E;" class="headerlink" title="1.2&#x6298;&#x7EBF;&#x5728;&#x6BCF;&#x4E2A;view&#x7684;&#x6700;&#x5DE6;&#x8FB9;&#x4E2A;&#x6700;&#x53F3;&#x8FB9;&#x7684;&#x4F4D;&#x7F6E;"></a>1.2&#x6298;&#x7EBF;&#x5728;&#x6BCF;&#x4E2A;view&#x7684;&#x6700;&#x5DE6;&#x8FB9;&#x4E2A;&#x6700;&#x53F3;&#x8FB9;&#x7684;&#x4F4D;&#x7F6E;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-具体实现"><span class="nav-number"></span> <span class="nav-text"><a href="#2-&#x5177;&#x4F53;&#x5B9E;&#x73B0;" class="headerlink" title="2.&#x5177;&#x4F53;&#x5B9E;&#x73B0;"></a>2.&#x5177;&#x4F53;&#x5B9E;&#x73B0;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1WeatherLineView的实现"><span class="nav-number">1.</span> <span class="nav-text"><a href="#2-1WeatherLineView&#x7684;&#x5B9E;&#x73B0;" class="headerlink" title="2.1WeatherLineView&#x7684;&#x5B9E;&#x73B0;"></a>2.1WeatherLineView&#x7684;&#x5B9E;&#x73B0;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2RecyclerView的Item的布局"><span class="nav-number">2.</span> <span class="nav-text"><a href="#2-2RecyclerView&#x7684;Item&#x7684;&#x5E03;&#x5C40;" class="headerlink" title="2.2RecyclerView&#x7684;Item&#x7684;&#x5E03;&#x5C40;"></a>2.2RecyclerView&#x7684;Item&#x7684;&#x5E03;&#x5C40;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3RecyclerView的adapter的实现"><span class="nav-number">3.</span> <span class="nav-text"><a href="#2-3RecyclerView&#x7684;adapter&#x7684;&#x5B9E;&#x73B0;" class="headerlink" title="2.3RecyclerView&#x7684;adapter&#x7684;&#x5B9E;&#x73B0;"></a>2.3RecyclerView&#x7684;adapter&#x7684;&#x5B9E;&#x73B0;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4Activity里面获取数组设置到RecyclerView里面去"><span class="nav-number">4.</span> <span class="nav-text"><a href="#2-4Activity&#x91CC;&#x9762;&#x83B7;&#x53D6;&#x6570;&#x7EC4;&#x8BBE;&#x7F6E;&#x5230;RecyclerView&#x91CC;&#x9762;&#x53BB;" class="headerlink" title="2.4Activity&#x91CC;&#x9762;&#x83B7;&#x53D6;&#x6570;&#x7EC4;&#x8BBE;&#x7F6E;&#x5230;RecyclerView&#x91CC;&#x9762;&#x53BB;"></a>2.4Activity&#x91CC;&#x9762;&#x83B7;&#x53D6;&#x6570;&#x7EC4;&#x8BBE;&#x7F6E;&#x5230;RecyclerView&#x91CC;&#x9762;&#x53BB;</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

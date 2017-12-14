@@ -1,0 +1,822 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="插件化," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="这次准备写一系列的关于自己学习插件化的过程了，前面虽然陆陆续续的学习了一些插件化方面的知识，但是都是淡淡续续的，这次要从基础开始了，其实我一直认为基础这个东西挺重要的。 本文代码在我的Github上面:Plugin Demo 这里首先说明一下代理模式在插件化中的作用，代理其实就是劫持一个类，然后在执行指定的方法的时候，做一些事，一些什么事情呢，比如在前面或者后面加个统计，或者直接替换原来的执行逻辑">
+<meta name="keywords" content="插件化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java代理模式与Binder">
+<meta property="og:url" content="http://www.qingyongai.com/2017/06/28/代理模式与Binder/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="这次准备写一系列的关于自己学习插件化的过程了，前面虽然陆陆续续的学习了一些插件化方面的知识，但是都是淡淡续续的，这次要从基础开始了，其实我一直认为基础这个东西挺重要的。 本文代码在我的Github上面:Plugin Demo 这里首先说明一下代理模式在插件化中的作用，代理其实就是劫持一个类，然后在执行指定的方法的时候，做一些事，一些什么事情呢，比如在前面或者后面加个统计，或者直接替换原来的执行逻辑">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/86356234.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/16802.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/32375.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/58195.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/83769.png">
+<meta property="og:updated_time" content="2017-12-13T16:03:51.531Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java代理模式与Binder">
+<meta name="twitter:description" content="这次准备写一系列的关于自己学习插件化的过程了，前面虽然陆陆续续的学习了一些插件化方面的知识，但是都是淡淡续续的，这次要从基础开始了，其实我一直认为基础这个东西挺重要的。 本文代码在我的Github上面:Plugin Demo 这里首先说明一下代理模式在插件化中的作用，代理其实就是劫持一个类，然后在执行指定的方法的时候，做一些事，一些什么事情呢，比如在前面或者后面加个统计，或者直接替换原来的执行逻辑">
+<meta name="twitter:image" content="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/86356234.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Java代理模式与Binder | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java代理模式与Binder
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-06-28T23:43:40+08:00" content="2017-06-28">
+              2017-06-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/插件化/" itemprop="url" rel="index">
+                    <span itemprop="name">插件化</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/06/28/代理模式与Binder/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/06/28/代理模式与Binder/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2017/06/28/代理模式与Binder/" class="leancloud_visitors" data-flag-title="Java代理模式与Binder">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这次准备写一系列的关于自己学习插件化的过程了，前面虽然陆陆续续的学习了一些插件化方面的知识，但是都是淡淡续续的，这次要从基础开始了，其实我一直认为基础这个东西挺重要的。</p>
+<p>本文代码在我的Github上面:<a href="https://github.com/qingyongai/PluginDemo/tree/understand_plugin/javaproxy" target="_blank" rel="noopener">Plugin Demo</a></p>
+<p>这里首先说明一下代理模式在插件化中的作用，代理其实就是劫持一个类，然后在执行指定的方法的时候，做一些事，一些什么事情呢，比如在前面或者后面加个统计，或者直接替换原来的执行逻辑，换成自己的逻辑。</p>
+<p>其他比如，我们需要在不同的情况下返回同一个方法的不同实现也可以使用代理模式的，比如在做Push的时候，我们可能在App里面不止使用了一个推送服务，比如很多App会同时集成，个推和小米以及华为的推送，那么我们需要在不同的手机上面使用不同的推送，小米和和华为手机上面使用他们自己的，其余的手机上面使用个推的。那这个时候就可以使用代理模式来实现，因为推送基本就那几个方法，一是开启推送，一是给设备打标签等等方法需要我们实现。那分别用几个实现类实现即可，好吧，其实这个是策略模式，逃。</p>
+<p>我们时常会看到别人说hook，特别是在插件化的时候，hook住Activity的启动，通过预先埋在Manifest里面的Activity，替换成我们真正想要启动的Activity等等的说法。通常Hook，又叫钩子，通常是指对一些方法进行拦截。这样当这些方法被调用时，也能够执行我们自己的代码，这也是面向切面编程的思想（<a href="https://www.zhihu.com/question/24863332" target="_blank" rel="noopener">AOP</a>）。<br>Android中，本身并不提供这样的拦截机制，但是有时候，我们可以在一些特殊的场合实现一种的Hook方法。<br>大致思路：<br>1.找到需要Hook方法的系统类<br>2.利用代理模式来代理系统类的运行拦截我们需要拦截的方法<br>3.使用反射的方法把这个系统类替换成你的代理类<br>上面的一段话取自<a href="http://blog.csdn.net/yulong0809/article/details/56842027" target="_blank" rel="noopener">插件化知识详细分解及原理 之代理，hook，反射</a>，感觉说的挺好。这里是不是就能感受到代理模式的强大了，下面会细说的。</p>
+<p>代理模式的意思就是为其他对象提供一种代理以控制对这个对象的访问，一般当我们无法或者不想直接访问某个对象或者访问某个对象存在困难时，可以用过一个代理对象来间接访问。(下图出自:<a href="http://www.jianshu.com/p/6f6bb2f0ece9" target="_blank" rel="noopener">代理模式及Java实现动态代理</a>)<br><img src="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/86356234.png" alt="代理模式UML图"><br>java中的代理模式大概可以分为两种，一种就是普通的代理也就是静态代理，就是我们生成固定的代码，在我们运行前代理类的class编译文件就已经存在啦，动态代理与静态代理相反，在code阶段压根不需要知道代理谁，代理谁将会在代码的执行阶段通过一些判断来决定代理哪个对象。动态代理其实如果细分也可以分成两类，一类是JDK提供的代理，一类是<a href="https://github.com/cglib/cglib" target="_blank" rel="noopener">cglib</a>提供的代理类，他们的区别是:<br><em>JDK动态代理只能对实现了接口的类生成代理，而不能针对类 。<br>CGLIB是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法 。<br>因为是继承，所以该类或方法最好不要声明成final ，final可以阻止继承和多态。</em></p>
+<h5 id="这里需要注意，因为是代理模式，肯定是需要真正代理某个类的，也就是说需要真正做事得类，然后对这个类进行代理。这点是基础，不然说不定你会越看越懵逼。"><a href="#这里需要注意，因为是代理模式，肯定是需要真正代理某个类的，也就是说需要真正做事得类，然后对这个类进行代理。这点是基础，不然说不定你会越看越懵逼。" class="headerlink" title="这里需要注意，因为是代理模式，肯定是需要真正代理某个类的，也就是说需要真正做事得类，然后对这个类进行代理。这点是基础，不然说不定你会越看越懵逼。"></a>这里需要注意，因为是代理模式，肯定是需要真正代理某个类的，也就是说需要真正做事得类，然后对这个类进行代理。这点是基础，不然说不定你会越看越懵逼。</h5><a id="more"></a>
+<h5 id="普通代理"><a href="#普通代理" class="headerlink" title="普通代理"></a>普通代理</h5><p>假设这样一个例子，小明要做某件事（自行脑补什么事），他不想自己做，想委托给别人做，那么这个代理怎么写呢。<br>按照套路我们首先需要定义一个接口，里面有一个做事情的方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface IDoThing &#123;</span><br><span class="line">    void doSomeThing();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后需要真正做事的类，小明，就像上面说的，这个是基础，这个都没有，代理个毛。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class Xiaoming implements IDoThing &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void doSomeThing() &#123;</span><br><span class="line">        System.out.println(&quot;xiaoming doSomething()&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后是代理类的实现:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class ProxyXiaoming implements IDoThing &#123;</span><br><span class="line">    private IDoThing mSubject;</span><br><span class="line">    public ProxyXiaoming(IDoThing subject) &#123;</span><br><span class="line">        mSubject = subject;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void doSomeThing() &#123;</span><br><span class="line">        mSubject.doSomeThing();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后是调用的时候啦:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public class ProxyMain &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] params) &#123;</span><br><span class="line">        Xiaoming real = new Xiaoming();</span><br><span class="line">        // 这个代理了xiaoming，如果想要再代理别人，需要重新创建ProxyXiaohuang等等</span><br><span class="line">        ProxyXiaoming proxy = new ProxyXiaoming(real);</span><br><span class="line">        // 要访问Xiaoming的doSomeThing()通过ProxyXiaoming去访问</span><br><span class="line">        proxy.doSomeThing();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="JDK动态代理"><a href="#JDK动态代理" class="headerlink" title="JDK动态代理"></a>JDK动态代理</h5><p>先说实现，然后细说一下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">public class InvocationProxy implements InvocationHandler &#123;</span><br><span class="line"></span><br><span class="line">    private Object target;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 绑定委托对象并返回一个代理类</span><br><span class="line">     *</span><br><span class="line">     * @param target</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public Object bind(Object target) &#123;</span><br><span class="line">        this.target = target;</span><br><span class="line">        //取得代理对象</span><br><span class="line">        return Proxy.newProxyInstance(target.getClass().getClassLoader(),</span><br><span class="line">                target.getClass().getInterfaces(), this);   //要绑定接口(这是一个缺陷，cglib弥补了这一缺陷)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;</span><br><span class="line">        if (target == null) return null;</span><br><span class="line">        Object result;</span><br><span class="line">        System.out.println(&quot;事物开始&quot;);</span><br><span class="line">        //执行方法</span><br><span class="line">        result = method.invoke(target, args);</span><br><span class="line">        System.out.println(&quot;事物结束&quot;);</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">public class InvocationMain &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] params) &#123;</span><br><span class="line">        // 动态代理，具体的每个真实的类也要先弄好，只是正调用的时候可以根据不同的条件调用不同的方法</span><br><span class="line">        // 或者在调用那个方法的前后做一些事情</span><br><span class="line">        // InvocationHandler只能代理接口</span><br><span class="line">        final Xiaoming real = new Xiaoming();</span><br><span class="line">        // 代理Xiaoming</span><br><span class="line">        IDoThing doThing = (IDoThing) Proxy.newProxyInstance(</span><br><span class="line">                real.getClass().getClassLoader(),</span><br><span class="line">                new Class[]&#123;IDoThing.class&#125;,</span><br><span class="line">                new InvocationHandler() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;</span><br><span class="line">                        Object object = method.invoke(real, args);</span><br><span class="line">                        return object;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">        doThing.doSomeThing();</span><br><span class="line"></span><br><span class="line">        // 另一写法</span><br><span class="line">//        InvocationProxy proxy = new InvocationProxy();</span><br><span class="line">//        IDoThing iDoThing = (IDoThing) proxy.bind(new Xiaoming());</span><br><span class="line">//        iDoThing.doSomeThing();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>JDK实现动态代理主要涉及以下几个类:<br><code>java.lang.reflect.Proxy</code>:这是生成代理类的主类，通过 Proxy 类生成的代理类都继承了 Proxy 类。<br><code>java.lang.reflect.InvocationHandler</code>: 这里称他为”调用处理器”，简单说这个类就是，对我们需要的方法进行处理的，<code>invoke</code>方法会主动调用，我们需要的是处理它的内部实现。</p>
+<h5 id="cglib动态代理"><a href="#cglib动态代理" class="headerlink" title="cglib动态代理"></a>cglib动态代理</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public class CglibProxy implements MethodInterceptor &#123;</span><br><span class="line"></span><br><span class="line">    private Object target;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 创建代理对象</span><br><span class="line">     *</span><br><span class="line">     * @param target</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public Object getInstance(Object target) &#123;</span><br><span class="line">        this.target = target;</span><br><span class="line">        Enhancer enhancer = new Enhancer();</span><br><span class="line">        enhancer.setSuperclass(this.target.getClass());</span><br><span class="line">        // 回调方法</span><br><span class="line">        enhancer.setCallback(this);</span><br><span class="line">        // 创建代理对象</span><br><span class="line">        return enhancer.create();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable &#123;</span><br><span class="line">        if (target == null) return null;</span><br><span class="line">        Object result;</span><br><span class="line">        System.out.println(&quot;事物开始&quot;);</span><br><span class="line">        //执行方法</span><br><span class="line">        result = methodProxy.invokeSuper(o, args);</span><br><span class="line">        System.out.println(&quot;事物结束&quot;);</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public class CglibMain &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] params) &#123;</span><br><span class="line">        CglibProxy proxy = new CglibProxy();</span><br><span class="line">        Xiaoming xiaoming = (Xiaoming) proxy.getInstance(new Xiaoming());</span><br><span class="line">        xiaoming.doSomeThing();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是不是和jdk的动态代理差不多的。先创建代理对象，然后拦截方法的。</p>
+<p>看到上面写了一堆是不是感觉没什么用，是吧，这样想就对啦，这里列出一个实际的例子，比如我们有这样一个需求，需要在一定的范围内禁止掉<code>List</code>的<code>add</code>方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 禁止List的add功能</span><br><span class="line"> *</span><br><span class="line"> * @param list</span><br><span class="line"> * @return</span><br><span class="line"> */</span><br><span class="line">public static List getList(final List list) &#123;</span><br><span class="line">    return (List) Proxy.newProxyInstance(list.getClass().getClassLoader(),</span><br><span class="line">            new Class[]&#123;List.class&#125;,</span><br><span class="line">            new InvocationHandler() &#123;</span><br><span class="line">                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;</span><br><span class="line">                    if (&quot;add&quot;.equals(method.getName())) &#123;</span><br><span class="line">                        throw new UnsupportedOperationException();</span><br><span class="line">                    &#125; else &#123;</span><br><span class="line">                        return method.invoke(list, args);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>哈哈，是不是很奇妙的。</p>
+<h5 id="Hook-Instrumentation创建Activity的方法"><a href="#Hook-Instrumentation创建Activity的方法" class="headerlink" title="Hook Instrumentation创建Activity的方法"></a>Hook Instrumentation创建Activity的方法</h5><p>我在<a href="http://www.jianshu.com/p/db7a9e70cbdc" target="_blank" rel="noopener">Android的资源管理器的创建过程</a>里面写到过，启动Activity即Activity的创建过程了的。<br><img src="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/16802.png" alt="startActivity.png"><br>其实一般的时候我们Hook，需要找对点的，什么叫Hook点呢。<br><img src="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/32375.png" alt="什么叫Hook点.png"><br>这是<a href="http://weishu.me/2016/01/28/understand-plugin-framework-proxy-hook/" target="_blank" rel="noopener">weishu</a>大神说过的。<br>这里，实际上使用了ActivityThread类的mInstrumentation成员的execStartActivity方法；注意到，ActivityThread 实际上是主线程，而主线程一个进程只有一个，因此这里是一个良好的Hook点。其实一个App的主入口就是ActivityThread，它里面有main方法的。<br>所以我们可以拿到mMainThread然后修改掉它的mInstrumentation对象为我们的代理对象。<br>实现如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public class HookHelper &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Context的startActivity最终是由ContextImpl实现的，</span><br><span class="line">     * 调用ActivityThread成员的Instrumentation对象的execStartActivity方法</span><br><span class="line">     */</span><br><span class="line">    public static void hookContextStartActivity() throws Exception &#123;</span><br><span class="line">        // 先获取到当前的ActivityThread对象</span><br><span class="line">        Class&lt;?&gt; activityThreadClass = Class.forName(&quot;android.app.ActivityThread&quot;);</span><br><span class="line">        // 找到currentActivityThread静态函数</span><br><span class="line">        Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod(&quot;currentActivityThread&quot;);</span><br><span class="line">        currentActivityThreadMethod.setAccessible(true);</span><br><span class="line">        //currentActivityThread是一个static函数所以可以直接invoke，不需要带实例参数，直接拿到的就是ActivityThread对象</span><br><span class="line">        Object currentActivityThread = currentActivityThreadMethod.invoke(null);</span><br><span class="line"></span><br><span class="line">        // 拿到原始的 mInstrumentation字段</span><br><span class="line">        Field mInstrumentationField = activityThreadClass.getDeclaredField(&quot;mInstrumentation&quot;);</span><br><span class="line">        mInstrumentationField.setAccessible(true);</span><br><span class="line">        // 拿到Instrumentation对象从currentActivityThread里面</span><br><span class="line">        Instrumentation mInstrumentation = (Instrumentation) mInstrumentationField.get(currentActivityThread);</span><br><span class="line"></span><br><span class="line">        // 新建增加版本Instrumentation实例</span><br><span class="line">        EvilInstrumentation evilInstrumentation = new EvilInstrumentation(mInstrumentation);</span><br><span class="line">        // 设置成增强版本的Instrumentation</span><br><span class="line">        mInstrumentationField.set(currentActivityThread, evilInstrumentation);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">public class EvilInstrumentation extends Instrumentation &#123;</span><br><span class="line"></span><br><span class="line">    private static final String TAG = EvilInstrumentation.class.getSimpleName();</span><br><span class="line"></span><br><span class="line">    // ActivityThread中原始的对象, 保存起来</span><br><span class="line">    Instrumentation mBase;</span><br><span class="line"></span><br><span class="line">    public EvilInstrumentation(Instrumentation base) &#123;</span><br><span class="line">        mBase = base;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public ActivityResult execStartActivity(</span><br><span class="line">            Context who,</span><br><span class="line">            IBinder contextThread,</span><br><span class="line">            IBinder token,</span><br><span class="line">            Activity target,</span><br><span class="line">            Intent intent,</span><br><span class="line">            int requestCode,</span><br><span class="line">            Bundle options) &#123;</span><br><span class="line"></span><br><span class="line">        // Hook之前, 做处理</span><br><span class="line">        Log.e(TAG, &quot;\n执行了startActivity, 参数如下: \n&quot; + &quot;who = [&quot; + who + &quot;], &quot; +</span><br><span class="line">                &quot;\ncontextThread = [&quot; + contextThread + &quot;], \ntoken = [&quot; + token + &quot;], &quot; +</span><br><span class="line">                &quot;\ntarget = [&quot; + target + &quot;], \nintent = [&quot; + intent +</span><br><span class="line">                &quot;], \nrequestCode = [&quot; + requestCode + &quot;], \noptions = [&quot; + options + &quot;]&quot;);</span><br><span class="line"></span><br><span class="line">        // 开始调用原始的方法, 调不调用随你,但是不调用的话, 所有的startActivity都失效了.</span><br><span class="line">        // 由于这个方法是隐藏的,因此需要使用反射调用;首先找到这个方法</span><br><span class="line">        try &#123;</span><br><span class="line">            Method execStartActivity = Instrumentation.class.getDeclaredMethod(</span><br><span class="line">                    &quot;execStartActivity&quot;,</span><br><span class="line">                    Context.class,</span><br><span class="line">                    IBinder.class,</span><br><span class="line">                    IBinder.class,</span><br><span class="line">                    Activity.class,</span><br><span class="line">                    Intent.class,</span><br><span class="line">                    int.class,</span><br><span class="line">                    Bundle.class);</span><br><span class="line"></span><br><span class="line">            execStartActivity.setAccessible(true);</span><br><span class="line"></span><br><span class="line">            return (ActivityResult) execStartActivity.invoke(</span><br><span class="line">                    mBase,</span><br><span class="line">                    who,</span><br><span class="line">                    contextThread,</span><br><span class="line">                    token,</span><br><span class="line">                    target,</span><br><span class="line">                    intent,</span><br><span class="line">                    requestCode,</span><br><span class="line">                    options);</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            // 某该死的rom修改了  需要手动适配</span><br><span class="line">            throw new RuntimeException(&quot;do not support pls adapt it&quot;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上实现是weishu大神写的，我只是挪用。<br>调用，由于这里只是举例，真正的插件化不会这么写的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public class MainActivity extends BaseActivity &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void attachBaseContext(Context newBase) &#123;</span><br><span class="line">        super.attachBaseContext(newBase);</span><br><span class="line">        try &#123;</span><br><span class="line">            HookHelper.hookContextStartActivity();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void contextStartAct(View view) &#123;</span><br><span class="line">        Application application = getApplication();</span><br><span class="line">        Intent intent = new Intent(this, LaunchedActivity.class);</span><br><span class="line">        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);</span><br><span class="line">        application.startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void activityStartAct(View view) &#123;</span><br><span class="line">        Intent intent = new Intent(this, LaunchedActivity.class);</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里只是Hook了Context的startActivity，Activity是自己实现了startActivity的。</p>
+<h5 id="系统中的代理模式的使用"><a href="#系统中的代理模式的使用" class="headerlink" title="系统中的代理模式的使用"></a>系统中的代理模式的使用</h5><p>安卓系统中用到代理模式还是挺多的，与Binder相关的都是用到了代理模式的，关于Binder后面再说，我们平时写的AIDL都是用了代理模式的，一般在使用AIDL的时候，如果不需要跨进程就返回Binder本地对象，如果需要就返回代理对象。</p>
+<p>这里先说一一个具体的代理的例子，然后说一下Binder中的代理，顺便说一下Binder。<br><img src="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/58195.png" alt="ActivityManagerService.jpg"></p>
+<p>这个例子是ActivityManagerProxy的代理实现，它代理了ActivityManagerService这个类，然后在调用使用IActivityManager里面的方法的时候，因为真正的实现是ActivityManagerService，这个是运行在系统的进程中的，我们要调用的话就要跨进程调用了，安卓跨进程这里使用的是Binder。</p>
+<p>Binder的一般套路是这样，因为跨进程，所以是分为客户端和服务端的，客户端就是运行在客户端进程中的，服务端就是运行在另外的进程，可能是系统的，可能是别人提供的某种服务（比如Google Play的支付就是使用），由于需要提供服务给使用，所以一般会定义一个接口，然后这个接口需要继承<code>IInterface</code>这个接口，这个接口的解释是这样的:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Base class for Binder interfaces.  When defining a new interface,</span><br><span class="line"> * you must derive it from IInterface.</span><br><span class="line"> */</span><br></pre></td></tr></table></figure></p>
+<p>就是说如果想用Binder实现跨进程，那么必须要继承这个类。<br>然后再说客户端和服务端，其实客户端挺简单。<br>客户端只需要实现对应的接口，这里是<code>IActivityManager</code>，然后实现里面的方法即可，那其实为什么需要跨进程，其实就是我们需要调用的方法在服务端里面，那这里我们实现这些方法要写什么呢，怎么写呢，其实也是有套路的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public void unregisterReceiver(IIntentReceiver receiver) throws RemoteException</span><br><span class="line">&#123;</span><br><span class="line">    Parcel data = Parcel.obtain();</span><br><span class="line">    Parcel reply = Parcel.obtain();</span><br><span class="line">    data.writeInterfaceToken(IActivityManager.descriptor);</span><br><span class="line">    data.writeStrongBinder(receiver.asBinder());</span><br><span class="line">    mRemote.transact(UNREGISTER_RECEIVER_TRANSACTION, data, reply, 0);</span><br><span class="line">    reply.readException();</span><br><span class="line">    data.recycle();</span><br><span class="line">    reply.recycle();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>随便找一个方法分析，其实就是构造一些参数，包括传递过去的和返回来的，然后使用<code>mRemote</code>这个对象去传递参数给服务端。所以在写AIDL的时候IDE可以帮我们自动生成代码，因为接口写完了的话，里面每个函数的实现套路都是一样的。<br>服务端就麻烦一下，服务端需要继承<code>Binder</code>这个类并且实现接口，这里是<code>IActivityManager</code>，然后这里面就需要真的去实现<code>IActivityManager</code>接口里面想要做的事情了，这里需要注意下面的方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public boolean onTransact(int code, Parcel data, Parcel reply, int flags)</span><br></pre></td></tr></table></figure></p>
+<p>这个方法即是前面客户端调用真正会调用到的服务端的方法，服务端先调用到这里，然后填入参数，然后才会去调用<code>IActivityManager</code>里面的具体实现的方法，如果有返回值，会写到<code>reply</code>里面的。</p>
+<p>Binder里面套路差不多都是这样的，左边圈起来的是客户端，右边是服务端，服务端里面有真正的实现。服务端也叫Binder本地对象，我们写AIDL的时候，如果不需要跨进程的话，返回的是Binder本地的对象，就是服务端的，因为他里面有真正的实现的方法。不过一般在自己写AIDL的时候，服务端的真正的需要使用的方法还是我们自己实现的，反而客户端是代理对象，里面虽然也实现了接口里面一样的方法，不过这些方法都是一些跨进程的操作，传递对象到服务端，等待服务端返回值。</p>
+<h5 id="系统中的Binder跨进程通信"><a href="#系统中的Binder跨进程通信" class="headerlink" title="系统中的Binder跨进程通信"></a>系统中的Binder跨进程通信</h5><p>然后说说系统中的Binder跨进程通信吧。framework层Binder类图如下:<br><img src="http://dd089a5b.wiz03.com/share/resources/74ce24d8-7c17-4545-b764-fc1d3820c181/index_files/83769.png" alt="framework的binder类"><br>图片取自<a href="http://gityuan.com/2015/11/21/binder-framework/" target="_blank" rel="noopener">Gityuan博客</a>.<br>关于这几个类的解释看他的博客就行了，这里就不抄袭了。<br>在Android系统开机过程中，Zygote启动startReg会去注册一系列的方法，从而把Java层的方法和JNI方法绑定在一起的。<br>例如:<br>===&gt; AndroidRuntime.cpp—&gt; register_jni_procs<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/*static*/ int AndroidRuntime::startReg(JNIEnv* env)</span><br><span class="line">&#123;</span><br><span class="line">    ATRACE_NAME(&quot;RegisterAndroidNatives&quot;);</span><br><span class="line">    androidSetCreateThreadFunc((android_create_thread_fn) javaCreateThreadEtc);</span><br><span class="line">    env-&gt;PushLocalFrame(200);</span><br><span class="line">    if (register_jni_procs(gRegJNI, NELEM(gRegJNI), env) &lt; 0) &#123;</span><br><span class="line">        env-&gt;PopLocalFrame(NULL);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    env-&gt;PopLocalFrame(NULL);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注册JNI方法，其中gRegJNI是一个数组，记录所有需要注册的jni方法，其中有一项便是REG_JNI(register_android_os_Binder)。</p>
+<p>===&gt; android_util_Binder.cpp—&gt;register_android_os_Binder<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int register_android_os_Binder(JNIEnv* env)</span><br><span class="line">&#123;</span><br><span class="line">    if (int_register_android_os_Binder(env) &lt; 0)</span><br><span class="line">        return -1;</span><br><span class="line">    if (int_register_android_os_BinderInternal(env) &lt; 0)</span><br><span class="line">        return -1;</span><br><span class="line">    if (int_register_android_os_BinderProxy(env) &lt; 0)</span><br><span class="line">        return -1;</span><br><span class="line">    ...</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>分别注册<code>Binder</code>,<code>BinderInternal</code>,<code>BinderProxy</code>这三个java类对应的在JNI中的实现。建立了是java类在Native层与framework层之间的相互调用的桥梁。</p>
+<p>注册服务:<br>===&gt;ServiceManager.java<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public static void addService(String name, IBinder service) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        getIServiceManager().addService(name, service, false);</span><br><span class="line">    &#125; catch (RemoteException e) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static IServiceManager getIServiceManager() &#123;</span><br><span class="line">    if (sServiceManager != null) &#123;</span><br><span class="line">        return sServiceManager;</span><br><span class="line">    &#125;</span><br><span class="line">    sServiceManager = ServiceManagerNative.asInterface(BinderInternal.getContextObject());</span><br><span class="line">    return sServiceManager;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里的就是刚上面说的，会注册java方法和JNI方法的映射。也就是会调用<code>android_util_Binder.cpp</code>里的<code>android_os_BinderInternal_getContextObject</code>方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">====&gt;android_util_Binder.cpp</span><br><span class="line">static const JNINativeMethod gBinderInternalMethods[] = &#123;</span><br><span class="line">     /* name, signature, funcPtr */</span><br><span class="line">    &#123; &quot;getContextObject&quot;, &quot;()Landroid/os/IBinder;&quot;, (void*)android_os_BinderInternal_getContextObject &#125;,</span><br><span class="line">    &#123; &quot;joinThreadPool&quot;, &quot;()V&quot;, (void*)android_os_BinderInternal_joinThreadPool &#125;,</span><br><span class="line">    &#123; &quot;disableBackgroundScheduling&quot;, &quot;(Z)V&quot;, (void*)android_os_BinderInternal_disableBackgroundScheduling &#125;,</span><br><span class="line">    &#123; &quot;setMaxThreads&quot;, &quot;(I)V&quot;, (void*)android_os_BinderInternal_setMaxThreads &#125;,</span><br><span class="line">    &#123; &quot;handleGc&quot;, &quot;()V&quot;, (void*)android_os_BinderInternal_handleGc &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">static jobject android_os_BinderInternal_getContextObject(JNIEnv* env, jobject clazz)</span><br><span class="line">&#123;</span><br><span class="line">    sp&lt;IBinder&gt; b = ProcessState::self()-&gt;getContextObject(NULL);</span><br><span class="line">    return javaObjectForIBinder(env, b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>===&gt;ProcessState.cpp<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sp&lt;IBinder&gt; ProcessState::getContextObject(const sp&lt;IBinder&gt;&amp; /*caller*/)</span><br><span class="line">&#123;</span><br><span class="line">    return getStrongProxyForHandle(0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">sp&lt;IBinder&gt; ProcessState::getStrongProxyForHandle(int32_t handle)</span><br><span class="line">&#123;</span><br><span class="line">    sp&lt;IBinder&gt; result;</span><br><span class="line">    AutoMutex _l(mLock);</span><br><span class="line">    handle_entry* e = lookupHandleLocked(handle);</span><br><span class="line">    if (e != NULL) &#123;</span><br><span class="line">        IBinder* b = e-&gt;binder;</span><br><span class="line">        if (b == NULL || !e-&gt;refs-&gt;attemptIncWeak(this)) &#123;</span><br><span class="line">            if (handle == 0) &#123;</span><br><span class="line">                Parcel data;</span><br><span class="line">                status_t status = IPCThreadState::self()-&gt;transact(</span><br><span class="line">                        0, IBinder::PING_TRANSACTION, data, NULL, 0);</span><br><span class="line">                if (status == DEAD_OBJECT)</span><br><span class="line">                   return NULL;</span><br><span class="line">            &#125;</span><br><span class="line">            b = new BpBinder(handle);</span><br><span class="line">            e-&gt;binder = b;</span><br><span class="line">            if (b) e-&gt;refs = b-&gt;getWeakRefs();</span><br><span class="line">            result = b;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            result.force_set(b);</span><br><span class="line">            e-&gt;refs-&gt;decWeak(this);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ProcessState::self()-&gt;getContextObject()等价于 new BpBinder(0)。对于<code>javaObjectForIBinder</code>这个方法。<br>====&gt;android_util_Binder.cpp<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">jobject javaObjectForIBinder(JNIEnv* env, const sp&lt;IBinder&gt;&amp; val)</span><br><span class="line">&#123;</span><br><span class="line">    if (val == NULL) return NULL;</span><br><span class="line"></span><br><span class="line">    if (val-&gt;checkSubclass(&amp;gBinderOffsets)) &#123;</span><br><span class="line">        // One of our own!</span><br><span class="line">        jobject object = static_cast&lt;JavaBBinder*&gt;(val.get())-&gt;object();</span><br><span class="line">        LOGDEATH(&quot;objectForBinder %p: it&apos;s our own %p!\n&quot;, val.get(), object);</span><br><span class="line">        return object;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // For the rest of the function we will hold this lock, to serialize</span><br><span class="line">    // looking/creation/destruction of Java proxies for native Binder proxies.</span><br><span class="line">    AutoMutex _l(mProxyLock);</span><br><span class="line"></span><br><span class="line">    // Someone else&apos;s...  do we know about it?</span><br><span class="line">    jobject object = (jobject)val-&gt;findObject(&amp;gBinderProxyOffsets);</span><br><span class="line">    if (object != NULL) &#123;</span><br><span class="line">        jobject res = jniGetReferent(env, object);</span><br><span class="line">        if (res != NULL) &#123;</span><br><span class="line">            ALOGV(&quot;objectForBinder %p: found existing %p!\n&quot;, val.get(), res);</span><br><span class="line">            return res;</span><br><span class="line">        &#125;</span><br><span class="line">        LOGDEATH(&quot;Proxy object %p of IBinder %p no longer in working set!!!&quot;, object, val.get());</span><br><span class="line">        android_atomic_dec(&amp;gNumProxyRefs);</span><br><span class="line">        val-&gt;detachObject(&amp;gBinderProxyOffsets);</span><br><span class="line">        env-&gt;DeleteGlobalRef(object);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    object = env-&gt;NewObject(gBinderProxyOffsets.mClass, gBinderProxyOffsets.mConstructor);</span><br><span class="line">    if (object != NULL) &#123;</span><br><span class="line">        LOGDEATH(&quot;objectForBinder %p: created new proxy %p !\n&quot;, val.get(), object);</span><br><span class="line">        // The proxy holds a reference to the native object.</span><br><span class="line">        env-&gt;SetLongField(object, gBinderProxyOffsets.mObject, (jlong)val.get());</span><br><span class="line">        val-&gt;incStrong((void*)javaObjectForIBinder);</span><br><span class="line"></span><br><span class="line">        // The native object needs to hold a weak reference back to the</span><br><span class="line">        // proxy, so we can retrieve the same proxy if it is still active.</span><br><span class="line">        jobject refObject = env-&gt;NewGlobalRef(</span><br><span class="line">                env-&gt;GetObjectField(object, gBinderProxyOffsets.mSelf));</span><br><span class="line">        val-&gt;attachObject(&amp;gBinderProxyOffsets, refObject,</span><br><span class="line">                jnienv_to_javavm(env), proxy_cleanup);</span><br><span class="line"></span><br><span class="line">        // Also remember the death recipients registered on this proxy</span><br><span class="line">        sp&lt;DeathRecipientList&gt; drl = new DeathRecipientList;</span><br><span class="line">        drl-&gt;incStrong((void*)javaObjectForIBinder);</span><br><span class="line">        env-&gt;SetLongField(object, gBinderProxyOffsets.mOrgue, reinterpret_cast&lt;jlong&gt;(drl.get()));</span><br><span class="line"></span><br><span class="line">        // Note that a new object reference has been created.</span><br><span class="line">        android_atomic_inc(&amp;gNumProxyRefs);</span><br><span class="line">        incRefsCreated(env);</span><br><span class="line">    &#125;</span><br><span class="line">    return object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>根据BpBinder(C++)生成BinderProxy(Java)对象. 主要工作是创建BinderProxy对象,并把BpBinder对象地址保存到BinderProxy.mObject成员变量. 到此，可知ServiceManagerNative.asInterface(BinderInternal.getContextObject()) 等价于:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ServiceManagerNative.asInterface(new BinderProxy())</span><br></pre></td></tr></table></figure></p>
+<p>ServiceManagerNative.asInterface这个方法如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> static public IServiceManager asInterface(IBinder obj)</span><br><span class="line">&#123;</span><br><span class="line">    if (obj == null) &#123; //obj为BpBinder</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    //由于obj为BinderProxy，该方法默认返回null</span><br><span class="line">    IServiceManager in = (IServiceManager)obj.queryLocalInterface(descriptor);</span><br><span class="line">    if (in != null) &#123;</span><br><span class="line">        return in;</span><br><span class="line">    &#125;</span><br><span class="line">    return new ServiceManagerProxy(obj);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">final class BinderProxy implements IBinder &#123;</span><br><span class="line">    public IInterface queryLocalInterface(String descriptor) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由此，可知<code>ServiceManagerNative.asInterface(new BinderProxy())</code>等价于<code>new ServiceManagerProxy(new BinderProxy())</code>.</p>
+<p>===&gt; ServiceManagerProxy—&gt;addService<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public void addService(String name, IBinder service, boolean allowIsolated)</span><br><span class="line">        throws RemoteException &#123;</span><br><span class="line">    Parcel data = Parcel.obtain();</span><br><span class="line">    Parcel reply = Parcel.obtain();</span><br><span class="line">    data.writeInterfaceToken(IServiceManager.descriptor);</span><br><span class="line">    data.writeString(name);</span><br><span class="line">    data.writeStrongBinder(service);</span><br><span class="line">    data.writeInt(allowIsolated ? 1 : 0);</span><br><span class="line">    mRemote.transact(ADD_SERVICE_TRANSACTION, data, reply, 0);</span><br><span class="line">    reply.recycle();</span><br><span class="line">    data.recycle();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>前面已经说了mRemote是BinderProxy了。<br>===&gt;BinderProxy—&gt; transactNative<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public native boolean transactNative(int code, Parcel data, Parcel reply,</span><br><span class="line">            int flags) throws RemoteException;</span><br></pre></td></tr></table></figure></p>
+<p>Java层的BinderProxy.transact()最终交由Native层的BpBinder::transact()完成。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/插件化/" rel="tag">#插件化</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/05/React Native基础之props，state，style/" rel="next" title="React Native基础之props，state，style">
+                <i class="fa fa-chevron-left"></i> React Native基础之props，state，style
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/23/Git用法全/" rel="prev" title="Git 用法全">
+                Git 用法全 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/06/28/代理模式与Binder/"
+           data-title="Java代理模式与Binder" data-url="http://www.qingyongai.com/2017/06/28/代理模式与Binder/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#这里需要注意，因为是代理模式，肯定是需要真正代理某个类的，也就是说需要真正做事得类，然后对这个类进行代理。这点是基础，不然说不定你会越看越懵逼。"><span class="nav-number">1.</span> <span class="nav-text"><a href="#&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x6CE8;&#x610F;&#xFF0C;&#x56E0;&#x4E3A;&#x662F;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#xFF0C;&#x80AF;&#x5B9A;&#x662F;&#x9700;&#x8981;&#x771F;&#x6B63;&#x4EE3;&#x7406;&#x67D0;&#x4E2A;&#x7C7B;&#x7684;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x8BF4;&#x9700;&#x8981;&#x771F;&#x6B63;&#x505A;&#x4E8B;&#x5F97;&#x7C7B;&#xFF0C;&#x7136;&#x540E;&#x5BF9;&#x8FD9;&#x4E2A;&#x7C7B;&#x8FDB;&#x884C;&#x4EE3;&#x7406;&#x3002;&#x8FD9;&#x70B9;&#x662F;&#x57FA;&#x7840;&#xFF0C;&#x4E0D;&#x7136;&#x8BF4;&#x4E0D;&#x5B9A;&#x4F60;&#x4F1A;&#x8D8A;&#x770B;&#x8D8A;&#x61F5;&#x903C;&#x3002;" class="headerlink" title="&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x6CE8;&#x610F;&#xFF0C;&#x56E0;&#x4E3A;&#x662F;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#xFF0C;&#x80AF;&#x5B9A;&#x662F;&#x9700;&#x8981;&#x771F;&#x6B63;&#x4EE3;&#x7406;&#x67D0;&#x4E2A;&#x7C7B;&#x7684;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x8BF4;&#x9700;&#x8981;&#x771F;&#x6B63;&#x505A;&#x4E8B;&#x5F97;&#x7C7B;&#xFF0C;&#x7136;&#x540E;&#x5BF9;&#x8FD9;&#x4E2A;&#x7C7B;&#x8FDB;&#x884C;&#x4EE3;&#x7406;&#x3002;&#x8FD9;&#x70B9;&#x662F;&#x57FA;&#x7840;&#xFF0C;&#x4E0D;&#x7136;&#x8BF4;&#x4E0D;&#x5B9A;&#x4F60;&#x4F1A;&#x8D8A;&#x770B;&#x8D8A;&#x61F5;&#x903C;&#x3002;"></a>&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x6CE8;&#x610F;&#xFF0C;&#x56E0;&#x4E3A;&#x662F;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#xFF0C;&#x80AF;&#x5B9A;&#x662F;&#x9700;&#x8981;&#x771F;&#x6B63;&#x4EE3;&#x7406;&#x67D0;&#x4E2A;&#x7C7B;&#x7684;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x8BF4;&#x9700;&#x8981;&#x771F;&#x6B63;&#x505A;&#x4E8B;&#x5F97;&#x7C7B;&#xFF0C;&#x7136;&#x540E;&#x5BF9;&#x8FD9;&#x4E2A;&#x7C7B;&#x8FDB;&#x884C;&#x4EE3;&#x7406;&#x3002;&#x8FD9;&#x70B9;&#x662F;&#x57FA;&#x7840;&#xFF0C;&#x4E0D;&#x7136;&#x8BF4;&#x4E0D;&#x5B9A;&#x4F60;&#x4F1A;&#x8D8A;&#x770B;&#x8D8A;&#x61F5;&#x903C;&#x3002;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#普通代理"><span class="nav-number">2.</span> <span class="nav-text"><a href="#&#x666E;&#x901A;&#x4EE3;&#x7406;" class="headerlink" title="&#x666E;&#x901A;&#x4EE3;&#x7406;"></a>&#x666E;&#x901A;&#x4EE3;&#x7406;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#JDK动态代理"><span class="nav-number">3.</span> <span class="nav-text"><a href="#JDK&#x52A8;&#x6001;&#x4EE3;&#x7406;" class="headerlink" title="JDK&#x52A8;&#x6001;&#x4EE3;&#x7406;"></a>JDK&#x52A8;&#x6001;&#x4EE3;&#x7406;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#cglib动态代理"><span class="nav-number">4.</span> <span class="nav-text"><a href="#cglib&#x52A8;&#x6001;&#x4EE3;&#x7406;" class="headerlink" title="cglib&#x52A8;&#x6001;&#x4EE3;&#x7406;"></a>cglib&#x52A8;&#x6001;&#x4EE3;&#x7406;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Hook-Instrumentation创建Activity的方法"><span class="nav-number">5.</span> <span class="nav-text"><a href="#Hook-Instrumentation&#x521B;&#x5EFA;Activity&#x7684;&#x65B9;&#x6CD5;" class="headerlink" title="Hook Instrumentation&#x521B;&#x5EFA;Activity&#x7684;&#x65B9;&#x6CD5;"></a>Hook Instrumentation&#x521B;&#x5EFA;Activity&#x7684;&#x65B9;&#x6CD5;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#系统中的代理模式的使用"><span class="nav-number">6.</span> <span class="nav-text"><a href="#&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#x7684;&#x4F7F;&#x7528;" class="headerlink" title="&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#x7684;&#x4F7F;&#x7528;"></a>&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4EE3;&#x7406;&#x6A21;&#x5F0F;&#x7684;&#x4F7F;&#x7528;</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#系统中的Binder跨进程通信"><span class="nav-number">7.</span> <span class="nav-text"><a href="#&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;Binder&#x8DE8;&#x8FDB;&#x7A0B;&#x901A;&#x4FE1;" class="headerlink" title="&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;Binder&#x8DE8;&#x8FDB;&#x7A0B;&#x901A;&#x4FE1;"></a>&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;Binder&#x8DE8;&#x8FDB;&#x7A0B;&#x901A;&#x4FE1;</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

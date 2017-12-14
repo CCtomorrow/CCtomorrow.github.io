@@ -1,0 +1,799 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Custom View," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="关于自定义属性，我们用的比较多的时候就是在自定义view的时候了，其实自定义属性还有一些其余的妙用。 这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。1.Android里面使用自定义属性的实例可能我们在使用ToolBar的时候见过很多次的这种使用方式了。1234567&amp;lt;android.support.v7.widget.Toolbar    style=&amp;quot;@style/">
+<meta name="keywords" content="Custom View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android自定义属性为应用程序设置全局背景">
+<meta property="og:url" content="http://www.qingyongai.com/2016/04/22/Android自定义属性为应用程序设置全局背景/index.html">
+<meta property="og:site_name" content="Qingyongai Blog">
+<meta property="og:description" content="关于自定义属性，我们用的比较多的时候就是在自定义view的时候了，其实自定义属性还有一些其余的妙用。 这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。1.Android里面使用自定义属性的实例可能我们在使用ToolBar的时候见过很多次的这种使用方式了。1234567&amp;lt;android.support.v7.widget.Toolbar    style=&amp;quot;@style/">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82644226.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82652287.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82661381.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82673318.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82681292.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82694045.png">
+<meta property="og:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82714389.png">
+<meta property="og:updated_time" content="2017-12-13T15:01:07.784Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android自定义属性为应用程序设置全局背景">
+<meta name="twitter:description" content="关于自定义属性，我们用的比较多的时候就是在自定义view的时候了，其实自定义属性还有一些其余的妙用。 这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。1.Android里面使用自定义属性的实例可能我们在使用ToolBar的时候见过很多次的这种使用方式了。1234567&amp;lt;android.support.v7.widget.Toolbar    style=&amp;quot;@style/">
+<meta name="twitter:image" content="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82644226.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Android自定义属性为应用程序设置全局背景 | Qingyongai Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-78820139-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Qingyongai Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">专注 Android 开发</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Android自定义属性为应用程序设置全局背景
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-22T16:00:40+08:00" content="2016-04-22">
+              2016-04-22
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Android/Custom-View/" itemprop="url" rel="index">
+                    <span itemprop="name">Custom View</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/22/Android自定义属性为应用程序设置全局背景/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/22/Android自定义属性为应用程序设置全局背景/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/04/22/Android自定义属性为应用程序设置全局背景/" class="leancloud_visitors" data-flag-title="Android自定义属性为应用程序设置全局背景">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>关于自定义属性，我们用的比较多的时候就是在自定义view的时候了，其实自定义属性还有一些其余的妙用。</p>
+<h3 id="这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。"><a href="#这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。" class="headerlink" title="这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。"></a>这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。</h3><h3 id="1-Android里面使用自定义属性的实例"><a href="#1-Android里面使用自定义属性的实例" class="headerlink" title="1.Android里面使用自定义属性的实例"></a>1.Android里面使用自定义属性的实例</h3><p>可能我们在使用ToolBar的时候见过很多次的这种使用方式了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;android.support.v7.widget.Toolbar</span><br><span class="line">    style=&quot;@style/ToolBarStyle&quot;</span><br><span class="line">xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;</span><br><span class="line">    android:layout_width=&quot;match_parent&quot;</span><br><span class="line">    android:layout_height=&quot;?attr/actionBarSize&quot;</span><br><span class="line">    android:background=&quot;?attr/colorPrimary&quot; /&gt;</span><br></pre></td></tr></table></figure></p>
+<p>在确定ToolBar的宽度和背景色的时候，并没有在xml文件里面去写死，而是读取的Google自定义的属性值。<br>我们会好奇，这样怎么就能获取到值呢，这个属性是在哪里有定义的呢，关于怎么拿到值是另外一个问题了，现在来说一下这个值是在哪里定义的，并且在哪里赋的初始值的。<br>首先找到我们当前项目的Theme，我的当前的项目的Theme的parent是Theme.AppCompat.Light.DarkActionBar，找到它的parent，点进去，这里面就是Android内部的res\values里面的一些主题，属性等等。<br>在里面搜索actionBarSize和colorPrimary这个属性。<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82644226.png" alt="actionBarSize"></p>
+<p><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82652287.png" alt="colorPrimary"></p>
+<p>然后再看这个属性的declare-styleable的名字<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82661381.png" alt="declare-styleable"></p>
+<p>好吧，其实不需要知道declare-styleable的名字，跟这个没什么关系。</p>
+<p>这里我们知道Android的values里面确实有这些属性的定义，并不是凭空想象出来的，然后有了定义我们使用之前肯定要对这些属性赋值啊，指望开发者对其赋值有可能开发者并不知道这个东西的呢，所以呢，values里面肯定有赋值的操作，我们继续找。</p>
+<p>从哪找起呢，当然是从我们的Theme的parent找起了，前面说了当前的程序的主题是继承Theme.AppCompat.Light.DarkActionBar的。<br>我们就去找到对应的赋值操作。最终发现主题是继承Theme.Light，当然中间还继承了很多层，可以自行查看。<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82673318.png" alt="colorPrimary"><br>可以看到这里面是对colorPrimary进行了赋值操作的。<br>actionBarSize的赋值在Base.V7.Theme.AppCompat.Light里面。<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82681292.png" alt="actionBarSize"></p>
+<p>所以综上所述的一些知识我们知道，如果我们想在xm里面像android:background=”?attr/colorPrimary”这样的使用自定义的一些属性做一些操作的话也非常简单，只需要三步就可以了。</p>
+<p>步骤:</p>
+<h3 id="第一步，定义属性"><a href="#第一步，定义属性" class="headerlink" title="第一步，定义属性"></a>第一步，定义属性</h3><h3 id="第二步，给自定义的属性赋值"><a href="#第二步，给自定义的属性赋值" class="headerlink" title="第二步，给自定义的属性赋值"></a>第二步，给自定义的属性赋值</h3><h3 id="第三步，使用自定义的属性值"><a href="#第三步，使用自定义的属性值" class="headerlink" title="第三步，使用自定义的属性值"></a>第三步，使用自定义的属性值</h3><a id="more"></a>
+<h3 id="2-实例讲解一个关于自定义属性的妙用"><a href="#2-实例讲解一个关于自定义属性的妙用" class="headerlink" title="2.实例讲解一个关于自定义属性的妙用"></a>2.实例讲解一个关于自定义属性的妙用</h3><p>现在有一个需求是这样的，当前的程序为了风格统一，所有的界面需要一个统一的背景图或者背景色，并且这个背景图或者背景色是可以自由定制的，就是说可以在style文件里面自由配置。那这个时候自定义属性就非常方便的可以完成这个效果了。<br>三个步骤：</p>
+<h3 id="2-1-定义自定义的属性"><a href="#2-1-定义自定义的属性" class="headerlink" title="2.1.定义自定义的属性"></a>2.1.定义自定义的属性</h3><p>在values里面新建attrs.xml文件，里面定义自定义属性。<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82694045.png" alt="定义自定义的属性"><br>代码也贴这里:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;declare-styleable name=&quot;App_Attrs&quot;&gt;</span><br><span class="line">        &lt;!-- 默认背景图 --&gt;</span><br><span class="line">        &lt;attr name=&quot;baseBackground&quot; format=&quot;color|reference&quot;/&gt;</span><br><span class="line">    &lt;/declare-styleable&gt;</span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-2-给自定义的属性赋值"><a href="#2-2-给自定义的属性赋值" class="headerlink" title="2.2.给自定义的属性赋值"></a>2.2.给自定义的属性赋值</h3><p>需要我们在当前程序的Theme里面对这个属性赋值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;resources&gt;</span><br><span class="line">    &lt;style name=&quot;AppTheme&quot; parent=&quot;Theme.AppCompat.Light.DarkActionBar&quot;&gt;</span><br><span class="line">        &lt;item name=&quot;baseBackground&quot;&gt;@android:color/holo_green_light&lt;/item&gt;</span><br><span class="line">        &lt;item name=&quot;colorPrimary&quot;&gt;@color/colorPrimary&lt;/item&gt;</span><br><span class="line">        &lt;item name=&quot;colorPrimaryDark&quot;&gt;@color/colorPrimaryDark&lt;/item&gt;</span><br><span class="line">        &lt;item name=&quot;colorAccent&quot;&gt;@color/colorAccent&lt;/item&gt;</span><br><span class="line">    &lt;/style&gt;</span><br><span class="line">&lt;/resources&gt;</span><br></pre></td></tr></table></figure></p>
+<p>赋值也完成了。</p>
+<h3 id="2-3-使用自定义的属性值"><a href="#2-3-使用自定义的属性值" class="headerlink" title="2.3.使用自定义的属性值"></a>2.3.使用自定义的属性值</h3><p>由于我们当前的程序的所有的界面都需要使用这样的背景色，那么我们可以定义一个自己的baseActivity，里面对setContentView作一个简单的处理。</p>
+<h4 id="2-3-1-创建base-layout的xml布局"><a href="#2-3-1-创建base-layout的xml布局" class="headerlink" title="2.3.1.创建base_layout的xml布局"></a>2.3.1.创建base_layout的xml布局</h4><p>base_layout.xml<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;FrameLayout</span><br><span class="line">    android:id=&quot;@+id/base_layout_container&quot;</span><br><span class="line">xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    android:layout_width=&quot;match_parent&quot;</span><br><span class="line">    android:layout_height=&quot;match_parent&quot;</span><br><span class="line">    android:background=&quot;?attr/baseBackground&quot;&gt;</span><br><span class="line">&lt;/FrameLayout&gt;</span><br></pre></td></tr></table></figure></p>
+<p>里面引用了自定义的属性值。</p>
+<h4 id="2-3-2-baseActivity的代码"><a href="#2-3-2-baseActivity的代码" class="headerlink" title="2.3.2.baseActivity的代码:"></a>2.3.2.baseActivity的代码:</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public class BaseActivity extends AppCompatActivity &#123;</span><br><span class="line">    FrameLayout mBaseContainerView;</span><br><span class="line">    @Override</span><br><span class="line">    public void setContentView(@LayoutRes int layoutResID) &#123;</span><br><span class="line">setContentView(getLayoutInflater().inflate(layoutResID, null));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setContentView(View view) &#123;</span><br><span class="line">        setContentView(view, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,</span><br><span class="line">                ViewGroup.LayoutParams.MATCH_PARENT));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setContentView(View view, ViewGroup.LayoutParams params) &#123;</span><br><span class="line">        mBaseContainerView = (FrameLayout) getLayoutInflater().inflate(R.layout.base_layout, null);</span><br><span class="line">        Drawable bg = view.getBackground();</span><br><span class="line">        if (bg != null) &#123;</span><br><span class="line">            if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.JELLY_BEAN) &#123;</span><br><span class="line">                findViewById(R.id.base_layout_container).setBackground(bg);</span><br><span class="line">                view.setBackground(null);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                findViewById(R.id.base_layout_container).setBackgroundDrawable(bg);</span><br><span class="line">                view.setBackgroundDrawable(null);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(</span><br><span class="line">                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);</span><br><span class="line">        mBaseContainerView.addView(view, p);</span><br><span class="line">        super.setContentView(mBaseContainerView, params);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码里面对setContentView方法作了简单的处理。</p>
+<h4 id="2-3-3-MainActivity里面直接使用就可以看到背景色已经发生改变"><a href="#2-3-3-MainActivity里面直接使用就可以看到背景色已经发生改变" class="headerlink" title="2.3.3.MainActivity里面直接使用就可以看到背景色已经发生改变"></a>2.3.3.MainActivity里面直接使用就可以看到背景色已经发生改变</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">public class MainActivity extends BaseActivity &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有图有真相:<br><img src="http://dd089a5b.wiz03.com/share/resources/a44c3bd3-96e1-43fb-9836-7f7f614def25/index_files/82714389.png" alt="效果"></p>
+<p>Demo地址:<a href="http://download.csdn.net/detail/qy274770068/9499356" target="_blank" rel="noopener">http://download.csdn.net/detail/qy274770068/9499356</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Custom-View/" rel="tag">#Custom View</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/21/多渠道打包，生成不同包名的包/" rel="next" title="多渠道打包，生成不同包名的包">
+                <i class="fa fa-chevron-left"></i> 多渠道打包，生成不同包名的包
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/23/Android Volley+OkHttp3+Gson 开源库的封装/" rel="prev" title="Android Volley + OkHttp3 + Gson 开源库的封装">
+                Android Volley + OkHttp3 + Gson 开源库的封装 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/22/Android自定义属性为应用程序设置全局背景/"
+           data-title="Android自定义属性为应用程序设置全局背景" data-url="http://www.qingyongai.com/2016/04/22/Android自定义属性为应用程序设置全局背景/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="QingYong" />
+          <p class="site-author-name" itemprop="name">QingYong</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#这里讲解一个利用自定义的属性为应用程序全局的替换背景的例子。"><span class="nav-number">1.</span> <span class="nav-text"><a href="#&#x8FD9;&#x91CC;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5229;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x4E3A;&#x5E94;&#x7528;&#x7A0B;&#x5E8F;&#x5168;&#x5C40;&#x7684;&#x66FF;&#x6362;&#x80CC;&#x666F;&#x7684;&#x4F8B;&#x5B50;&#x3002;" class="headerlink" title="&#x8FD9;&#x91CC;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5229;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x4E3A;&#x5E94;&#x7528;&#x7A0B;&#x5E8F;&#x5168;&#x5C40;&#x7684;&#x66FF;&#x6362;&#x80CC;&#x666F;&#x7684;&#x4F8B;&#x5B50;&#x3002;"></a>&#x8FD9;&#x91CC;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5229;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x4E3A;&#x5E94;&#x7528;&#x7A0B;&#x5E8F;&#x5168;&#x5C40;&#x7684;&#x66FF;&#x6362;&#x80CC;&#x666F;&#x7684;&#x4F8B;&#x5B50;&#x3002;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Android里面使用自定义属性的实例"><span class="nav-number">2.</span> <span class="nav-text"><a href="#1-Android&#x91CC;&#x9762;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5B9E;&#x4F8B;" class="headerlink" title="1.Android&#x91CC;&#x9762;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5B9E;&#x4F8B;"></a>1.Android&#x91CC;&#x9762;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5B9E;&#x4F8B;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第一步，定义属性"><span class="nav-number">3.</span> <span class="nav-text"><a href="#&#x7B2C;&#x4E00;&#x6B65;&#xFF0C;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;" class="headerlink" title="&#x7B2C;&#x4E00;&#x6B65;&#xFF0C;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;"></a>&#x7B2C;&#x4E00;&#x6B65;&#xFF0C;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二步，给自定义的属性赋值"><span class="nav-number">4.</span> <span class="nav-text"><a href="#&#x7B2C;&#x4E8C;&#x6B65;&#xFF0C;&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;" class="headerlink" title="&#x7B2C;&#x4E8C;&#x6B65;&#xFF0C;&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;"></a>&#x7B2C;&#x4E8C;&#x6B65;&#xFF0C;&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第三步，使用自定义的属性值"><span class="nav-number">5.</span> <span class="nav-text"><a href="#&#x7B2C;&#x4E09;&#x6B65;&#xFF0C;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;" class="headerlink" title="&#x7B2C;&#x4E09;&#x6B65;&#xFF0C;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;"></a>&#x7B2C;&#x4E09;&#x6B65;&#xFF0C;&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-实例讲解一个关于自定义属性的妙用"><span class="nav-number">6.</span> <span class="nav-text"><a href="#2-&#x5B9E;&#x4F8B;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5173;&#x4E8E;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5999;&#x7528;" class="headerlink" title="2.&#x5B9E;&#x4F8B;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5173;&#x4E8E;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5999;&#x7528;"></a>2.&#x5B9E;&#x4F8B;&#x8BB2;&#x89E3;&#x4E00;&#x4E2A;&#x5173;&#x4E8E;&#x81EA;&#x5B9A;&#x4E49;&#x5C5E;&#x6027;&#x7684;&#x5999;&#x7528;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-定义自定义的属性"><span class="nav-number">7.</span> <span class="nav-text"><a href="#2-1-&#x5B9A;&#x4E49;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;" class="headerlink" title="2.1.&#x5B9A;&#x4E49;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;"></a>2.1.&#x5B9A;&#x4E49;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-给自定义的属性赋值"><span class="nav-number">8.</span> <span class="nav-text"><a href="#2-2-&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;" class="headerlink" title="2.2.&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;"></a>2.2.&#x7ED9;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x8D4B;&#x503C;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-使用自定义的属性值"><span class="nav-number">9.</span> <span class="nav-text"><a href="#2-3-&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;" class="headerlink" title="2.3.&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;"></a>2.3.&#x4F7F;&#x7528;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x5C5E;&#x6027;&#x503C;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-1-创建base-layout的xml布局"><span class="nav-number">9.1.</span> <span class="nav-text"><a href="#2-3-1-&#x521B;&#x5EFA;base-layout&#x7684;xml&#x5E03;&#x5C40;" class="headerlink" title="2.3.1.&#x521B;&#x5EFA;base_layout&#x7684;xml&#x5E03;&#x5C40;"></a>2.3.1.&#x521B;&#x5EFA;base_layout&#x7684;xml&#x5E03;&#x5C40;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-2-baseActivity的代码"><span class="nav-number">9.2.</span> <span class="nav-text"><a href="#2-3-2-baseActivity&#x7684;&#x4EE3;&#x7801;" class="headerlink" title="2.3.2.baseActivity&#x7684;&#x4EE3;&#x7801;:"></a>2.3.2.baseActivity&#x7684;&#x4EE3;&#x7801;:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-3-MainActivity里面直接使用就可以看到背景色已经发生改变"><span class="nav-number">9.3.</span> <span class="nav-text"><a href="#2-3-3-MainActivity&#x91CC;&#x9762;&#x76F4;&#x63A5;&#x4F7F;&#x7528;&#x5C31;&#x53EF;&#x4EE5;&#x770B;&#x5230;&#x80CC;&#x666F;&#x8272;&#x5DF2;&#x7ECF;&#x53D1;&#x751F;&#x6539;&#x53D8;" class="headerlink" title="2.3.3.MainActivity&#x91CC;&#x9762;&#x76F4;&#x63A5;&#x4F7F;&#x7528;&#x5C31;&#x53EF;&#x4EE5;&#x770B;&#x5230;&#x80CC;&#x666F;&#x8272;&#x5DF2;&#x7ECF;&#x53D1;&#x751F;&#x6539;&#x53D8;"></a>2.3.3.MainActivity&#x91CC;&#x9762;&#x76F4;&#x63A5;&#x4F7F;&#x7528;&#x5C31;&#x53EF;&#x4EE5;&#x770B;&#x5230;&#x80CC;&#x666F;&#x8272;&#x5DF2;&#x7ECF;&#x53D1;&#x751F;&#x6539;&#x53D8;</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2015 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">QingYong</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"qingyongai"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("4j8wvWRHUMyi2KAl3m0xFedh-gzGzoHsz", "mBX6wGr6OcLWOzIaX5wEFD0Y");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
