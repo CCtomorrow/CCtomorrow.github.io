@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="zh-Hans"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 热修复探究（二） · CCtomorrow</title><meta name="description" content="热修复探究（二） - CCtomorrow"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.qingyongai.com/atom.xml" title="CCtomorrow"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">HOME</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/about" target="_self" class="nav-list-link">ABOUT</a></li><li class="nav-list-item"><a href="https://github.com/CCtomorrow" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">热修复探究（二）</h1><div class="post-info">Aug 2, 2016</div><div class="post-content"><p>这次继续介绍热修复相关的知识，前一篇文章有提到这篇会讲补丁文件生成和CLASS_ISPREVERIFIED问题的相关操作，那其实这个两个实现现在主流的实现方式是通过groovy编写Gradle插件来实现的，所以呢，很有必要研究一下gradle和groovy相关的知识。不过我不会介绍groovy语言以及怎么使用Android Studio来开发Gradle的脚本这两个方面的知识，但是我会推荐几篇文章。</p>
+<p>这篇文章会着重介绍gradle相关的知识，所以估计两篇文章很难写完了，最少也是三篇。</p>
+<h3 id="groovy相关的文章推荐"><a href="#groovy相关的文章推荐" class="headerlink" title="groovy相关的文章推荐"></a>groovy相关的文章推荐</h3><p><a href="http://jiajixin.cn/2015/08/07/gradle-android/" target="_blank" rel="noopener">http://jiajixin.cn/2015/08/07/gradle-android/</a><br>这篇文章是讲Gradle相关的知识，但是里面有提到需要学习的groovy和gradle的资源，值得一看。<br><a href="http://www.ibm.com/developerworks/cn/education/java/j-groovy/j-groovy.html" target="_blank" rel="noopener">http://www.ibm.com/developerworks/cn/education/java/j-groovy/j-groovy.html</a><br>IBM社区的精通groovy，浅显易懂。<br><a href="http://blog.csdn.net/innost/article/details/48228651" target="_blank" rel="noopener">http://blog.csdn.net/innost/article/details/48228651</a><br>深入理解Android之gradle。</p>
+<p>我们了解groovy的基本语法也就够用了。</p>
+<h3 id="使用Android-Studio开发gradle插件文章推荐"><a href="#使用Android-Studio开发gradle插件文章推荐" class="headerlink" title="使用Android Studio开发gradle插件文章推荐"></a>使用Android Studio开发gradle插件文章推荐</h3><p><a href="http://blog.csdn.net/sbsujjbcy/article/details/50782830" target="_blank" rel="noopener">http://blog.csdn.net/sbsujjbcy/article/details/50782830</a><br>这篇文章介绍的很详细，同时这个博主还写了一篇关于热修复的文章，<a href="http://blog.csdn.net/sbsujjbcy/article/details/50839263" target="_blank" rel="noopener">Android 热修复使用Gradle Plugin1.5改造Nuwa插件</a>，大家可以去看一下。<br>我自己也写了一个关于使用Android Studio创建并开发gradle插件的Demo，在我的Github上面<a href="https://github.com/qingyongai/GradlePluginDemo" target="_blank" rel="noopener">https://github.com/qingyongai/GradlePluginDemo</a>。可以下载下来运行，参考。</p>
+<h3 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h3><p>还是说一下闭包，也方便自己以后复习。<br>闭包，英文叫Closure。闭包，是一种数据类型，它代表了一段可执行的代码。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def closure = &#123;//闭包是一段代码，所以需要用花括号括起来</span><br><span class="line">    String p, int p -&gt; //这个箭头很关键。箭头前面是参数定义，箭头后面是代码</span><br><span class="line">    println&quot;this is code&quot; // 这是代码，最后一句是返回值</span><br><span class="line">   //也可以使用return，和Groovy中普通函数一样</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Closeure定义格式:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def xxx = &#123;paramters -&gt; code&#125;</span><br><span class="line"></span><br><span class="line">def xxx = &#123;无参数,纯code&#125; 这种情况不需要-&gt;符号</span><br></pre></td></tr></table></figure></p>
+<p>调用:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">closure.call(&quot;string&quot;, 100)</span><br><span class="line"></span><br><span class="line">closure(&quot;string&quot;, 100)</span><br></pre></td></tr></table></figure></p>
+<p><strong> 注意:如果闭包没定义参数的话，则隐含有一个参数，这个参数名字叫 it，和this 的作用类似。it代表闭包的参数。 </strong></p>
+<p>无参闭包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def noParamClosure = &#123; -&gt; true &#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个时候，我们就不能给 noParamClosure 传参数了！</p>
+<p><strong> 使用注意: </strong><br>1.Groovy中，当函数的最后一个参数是闭包的话，可以省略圆括号。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def testClosure(int a, String b, Closure closure)&#123;</span><br><span class="line">      // dosomething</span><br><span class="line">     closure() //调用闭包</span><br><span class="line">&#125;</span><br><span class="line">那么调用的时候，就可以免括号！</span><br><span class="line">testClosure (4, &quot;test&quot;, &#123;</span><br><span class="line">   println &quot;i am in closure&quot;</span><br><span class="line">&#125; )  //括号可以不写</span><br></pre></td></tr></table></figure></p>
+<p>2.确定groovy的参数<br>多练，看API文档</p>
+<a id="more"></a>
+<h3 id="gradle知识"><a href="#gradle知识" class="headerlink" title="gradle知识"></a>gradle知识</h3><p>gradle是一个编程框架，相当于对groovy封装的一个框架。<br><a href="https://docs.gradle.org/current/dsl/" target="_blank" rel="noopener">https://docs.gradle.org/current/dsl/</a><br>这个是Gradle的API文档，没事多翻翻。</p>
+<p>Gradle中，每一个待编译的工程都叫一个Project。每一个Project在构建的时候都包含一系列的Task。<br>在Android开发的时候，每个Library和每个App都是一个Project。我们一般建立的Android工程都是Multi-Projects Build的。<br>配置就是会在Root Project的根目录放置一个build.gradle文件来配置其他子Project，这个build.gradle可以没有。<br>还有一个settings.gradle，配置这个multiprojects包含多少个子Project。</p>
+<p>一些好用的命令:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradlew projects 查看当前工程有多少Project</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/gradlew_task_peojects.png" alt="gradle peojects"></p>
+<p>gradle tasks 当前工程包含哪些task<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle project-path:tasks 查看某个Project的tasks</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/gradlew_task_tasks.png" alt="gradle tasks"><br>这里这个图并没有列完。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradle task name 执行某个任务</span><br></pre></td></tr></table></figure>
+<p><img src="/images/gradlew_task_clean.png" alt="gradle task name"></p>
+<p>gradle工作流程:<br><img src="/images/gradlew_work.png" alt="gradle work"><br>图片取自<a href="http://blog.csdn.net/innost/article/details/48228651" target="_blank" rel="noopener">http://blog.csdn.net/innost/article/details/48228651</a></p>
+<p>过程:<br>1.初始化阶段，对multi-project build而言，就是执行settings.gradle<br>2.Configration阶段的目标是解析每个project中的build.gradle，Configuration阶段完了后，整个build的project以及内部的Task关系就确定了，就是task之间的依赖也解析完成了，知道先执行哪个，后执行哪个了<br>3.执行任务了，任务执行完后，我们还可以加Hook</p>
+<p>Gradle主要有三种对象:<br>Gradle:当前项目的gradle环境信息，可以拿到当前使用的gradle工具的信息。<br><img src="/images/gradlew_env.png" alt="gradle环境"></p>
+<p>Project:每一个build.gradle文件都会转换成一个Project对象。<br>嗯，这个区看一下文档比较好，英语也不是太难。<br><a href="https://docs.gradle.org/current/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">https://docs.gradle.org/current/dsl/org.gradle.api.Project.html</a><br>Project包含若干Tasks，Project对应具体的工程，需要为Project加载所需要的插件，比如为Java工程加载Java插件。其实，一个Project包含多少Task往往是插件决定的。</p>
+<p>Setting:setting.gradle文件就是了。</p>
+<h4 id="Task"><a href="#Task" class="headerlink" title="Task"></a>Task</h4><p>Task是Gradle中的一种数据类型，它代表了一些要执行或者要干的工作。不同的插件可以添加不同的Task。每一个Task都需要和一个Project关联。<br>Task是和Project关联的，所以，我们要利用Project的task函数来创建一个Task。</p>
+<p>Android Studio创建项目一般目录结构是这样的:<br><img src="/images/android_project_stuct.png" alt="初始化"></p>
+<p><strong>setting.gradle解析</strong><br>首先被解析的是setting.gradle，该文件将会在初始化时期执行，并且定义了哪一个模块将会被构建。举个例子，上述setting.gradle包含了app模块，setting.gradle是针对多模块操作的，所以单独的模块工程完全可以删除掉该文件。在这之后，Gradle会为我们创建一个Setting对象。</p>
+<p><strong>根目录的build.gradle</strong><br><img src="/images/root_build_gradle.png" alt="根目录"><br>buildscript方法是定义了全局的相关属性，repositories定义了jcenter作为仓库。一个仓库代表着你的依赖包的来源，例如maven仓库。dependencies用来定义构建过程。这意味着你不应该在该方法体内定义子模块的依赖包，你仅仅需要定义默认的Android插件就可以了，因为该插件可以让你执行相关Android的tasks。</p>
+<p>allprojects方法可以用来定义各个模块的默认属性，你可以不仅仅局限于默认的配置，你可以自己创造tasks在allprojects方法体内，这些tasks将会在所有模块中可见。</p>
+<p><strong>模块内的build.gradle</strong><br><img src="/images/module_build_gradle.png" alt="模块的gradle文件"><br>模块内的gradle文件只对该模块起作用，而且其可以重写任何的参数来自于根目录下的gradle文件。</p>
+<p><strong>基本的tasks</strong><br>android插件依赖于Java插件，而Java插件依赖于base插件。<br>base插件有基本的tasks生命周期和一些通用的属性。<br>base插件定义了例如assemble和clean任务，Java插件定义了check和build任务，这两个任务不在base插件中定义。<br>这些tasks的约定含义：</p>
+<ul>
+<li>assemble: 集合所有的output</li>
+<li>clean: 清除所有的output</li>
+<li>check: 执行所有的checks检查，通常是unit测试和instrumentation测试</li>
+<li>build: 执行所有的assemble和check<br>Java插件同时也添加了source sets的概念。</li>
+</ul>
+<p><strong>Android tasks</strong><br>android插件继承了这些基本tasks,并且实现了他们自己的行为：</p>
+<ul>
+<li>assemble 针对每个版本创建一个apk</li>
+<li>clean 删除所有的构建任务，包含apk文件</li>
+<li>check 执行Lint检查并且能够在Lint检测到错误后停止执行脚本</li>
+<li>build 执行assemble和check<br>默认情况下assemble tasks定义了assembleDebug和assembleRelease，当然你还可以定义更多构建版本。除了这些tasks,android 插件也提供了一些新的tasks:</li>
+<li>connectedCheck 在测试机上执行所有测试任务</li>
+<li>deviceCheck 执行所有的测试在远程设备上</li>
+<li>installDebug和installRelease 在设备上安装一个特殊的版本</li>
+<li>所有的install task对应有uninstall 任务<br>build task依赖于check任务，但是不依赖于connectedCheck或者deviceCheck，执行check任务的使用Lint会产生一些相关文件，这些报告可以在app/build/outputs中查看</li>
+</ul>
+<p>gradle插件开发的话，其实需要看gradle的文档以及Android gradle工具的文档，这样才知道里面有什么属性，什么时候去拦截什么方法。</p>
+</div></article></div></main><footer><div class="paginator"><a href="/2016/08/10/Android_HotFix_three/" class="prev">PREV</a><a href="/2016/07/27/Android_HotFix_one/" class="next">NEXT</a></div><div data-thread-key="2016/08/02/Android_HotFix_two/" data-title="热修复探究（二）" data-url="http://www.qingyongai.com/2016/08/02/Android_HotFix_two/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+
+</script><div class="copyright"><p>© 2015 - 2018 <a href="http://www.qingyongai.com">CCtomorrow</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>
