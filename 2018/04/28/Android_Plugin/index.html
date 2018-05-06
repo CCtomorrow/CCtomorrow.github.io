@@ -1,5 +1,29 @@
-<!DOCTYPE html><html lang="zh-Hans"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 插件化总结 · CCtomorrow</title><meta name="description" content="插件化总结 - CCtomorrow"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.qingyongai.com/atom.xml" title="CCtomorrow"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">HOME</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/about" target="_self" class="nav-list-link">ABOUT</a></li><li class="nav-list-item"><a href="https://github.com/CCtomorrow" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">插件化总结</h1><div class="post-info">Apr 28, 2018</div><div class="post-content"><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面的文章都是讲四大组件的插件化的，然而虽然讲了四大组件的插件化，不过都是每个组件单独分析，并没有关联在一起，并不会让我们在一个比较高的维度上对插件化产生一个比较清晰的概述，这篇文章将会在一个比较高的维度上面来分析这个。</p>
-</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">PREV</a><a href="/2017/10/22/Activity_Plugin_three/" class="next">NEXT</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+<!DOCTYPE html><html lang="zh-Hans"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 四大组件插件化总结 · CCtomorrow</title><meta name="description" content="四大组件插件化总结 - CCtomorrow"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.qingyongai.com/atom.xml" title="CCtomorrow"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">HOME</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/about" target="_self" class="nav-list-link">ABOUT</a></li><li class="nav-list-item"><a href="https://github.com/CCtomorrow" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">四大组件插件化总结</h1><div class="post-info">Apr 28, 2018</div><div class="post-content"><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面的文章都是讲四大组件的插件化的，然而虽然讲了四大组件的插件化，不过都是每个组件单独分析，并没有关联在一起，并不会让我们在一个比较高的维度上对插件化产生一个比较清晰的概述，这篇文章将会在一个比较高的维度上面来分析这个。</p>
+<h3 id="四大组件的区别"><a href="#四大组件的区别" class="headerlink" title="四大组件的区别"></a>四大组件的区别</h3><p>要针对四大组件插件化，那么到底要采取什么措施，是要看四大组件之间的区别的。<br>Activity<br><img src="/images/activity_start_progress.png" alt="activity_start"></p>
+<ul>
+<li>启动模式<br>由于启动模式的存在，导致Activity即可以是每次打开Activity的时候都创新新的对象，也可以是复用已经存在的Activity而不创建对象。</li>
+<li>Activity栈<br>正因为有Activity栈这个东西的存在才会有，点击返回键可以返回上一个Activity的功能。</li>
+<li>Activity生命周期<br>当然Service其他组件如Service也有生命周期，但是其他组件没有Activity那么复杂的生命周期。</li>
+<li>必须显式声明<br>必须在AndroidManifest.xml中显示声明使用的Activity。</li>
+</ul>
+<a id="more"></a>
+<p>BroadcastReceiver</p>
+<ul>
+<li>BroadcastReceiver可以动态注册，也可以动态注册<br>比较大的区别是静态注册的BroadcastReceiver在应用关闭掉以后也可以收到BroadcastReceiver(静态BroadcastReceiver必须在AndroidManifest.xml中显示声明)，不过这个在国内其实并不能，因为国内的开发者各种利用BroadcastReceiver保活，然后厂商出各种策略，应用关闭以后，一般我们的应用是收不到的。</li>
+<li>BroadcastReceiver与IntentFilter<br>BroadcastReceiver有一个IntentFilter的概念(Activity也有，但是我们比较少的使用IntentFilter去启动Activity)，也就是说，每一个BroadcastReceiver只对特定的Broadcast感兴趣；而且，AMS在进行广播分发的时候，也会对这些BroadcastReceiver与发出的广播进行匹配，只有Intent匹配的Receiver才能收到广播。</li>
+</ul>
+<p>Service</p>
+<ul>
+<li>Service无法拥有多实例<br>Service组件与Activity组件另外一个不同点在于，对同一个Service调用多次startService并不会启动多个Service实例，而非特定Flag的Activity是可以允许这种情况存在的。</li>
+<li>生命周期不复杂<br>Service的生命周期相当简单：整个生命周期从调用 onCreate() 开始起，到 onDestroy() 返回时结束。对于非绑定服务，就是从startService调用到stopService或者stopSelf调用。对于绑定服务，就是bindService调用到unbindService调用。</li>
+<li>运行在不同的进程<br>当然这个其他组件也会，只是Service运行在其他的进程的场景和使用多一些。</li>
+</ul>
+<p>ContentProvider</p>
+<ul>
+<li>ContentProvider本身是用来共享数据的<br>ContentProvider本身是用来共享数据的，因此它提供一般的CURD服务；它类似HTTP这种无状态的服务，没有Activity，Service所谓的生命周期的概念，服务要么可用，要么不可用；对应着ContentProvider要么启动，要么随着进程死亡；而通常情况下，死亡之后还会被系统启动。所以，ContentProvider，只要有人需要这个服务，系统可以保证是永生的；这是与其他组件的最大不同；完全不用考虑生命周期的概念。</li>
+<li>原理<br>ContentProvider被设计为共享数据，这种数据量一般来说是相当大的；熟悉Binder的人应该知道，Binder进行数据传输有1M限制，因此如果要使用Binder传输大数据，必须使用类似socket的方式一段一段的读，也就是说需要自己在上层架设一层协议；ContentProvider并没有采取这种方式，而是采用了Android系统的匿名共享内存机制，利用Binder来传输这个文件描述符，进而实现文件的共享；这是第二个不同，因为其他的三个组建通信都是基于Binder的，只有ContentProvider使用了Ashmem。</li>
+</ul>
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">PREV</a><a href="/2017/10/22/Activity_Plugin_three/" class="next">NEXT</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="四大组件插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
 (function() {
     var ds = document.createElement('script');
     ds.type = 'text/javascript';ds.async = true;
