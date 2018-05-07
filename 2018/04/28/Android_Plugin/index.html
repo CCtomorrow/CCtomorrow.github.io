@@ -23,7 +23,7 @@
 <li>ContentProvider本身是用来共享数据的<br>ContentProvider本身是用来共享数据的，因此它提供一般的CURD服务；它类似HTTP这种无状态的服务，没有Activity，Service所谓的生命周期的概念，服务要么可用，要么不可用；对应着ContentProvider要么启动，要么随着进程死亡；而通常情况下，死亡之后还会被系统启动。所以，ContentProvider，只要有人需要这个服务，系统可以保证是永生的；这是与其他组件的最大不同；完全不用考虑生命周期的概念。</li>
 <li>原理<br>ContentProvider被设计为共享数据，这种数据量一般来说是相当大的；熟悉Binder的人应该知道，Binder进行数据传输有1M限制，因此如果要使用Binder传输大数据，必须使用类似socket的方式一段一段的读，也就是说需要自己在上层架设一层协议；ContentProvider并没有采取这种方式，而是采用了Android系统的匿名共享内存机制，利用Binder来传输这个文件描述符，进而实现文件的共享；这是第二个不同，因为其他的三个组建通信都是基于Binder的，只有ContentProvider使用了Ashmem。</li>
 </ul>
-</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">PREV</a><a href="/2018/02/22/ContentProvider_Plugin/" class="next">NEXT</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="四大组件插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">上一篇</a><a href="/2018/02/22/ContentProvider_Plugin/" class="next">下一篇</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="四大组件插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
 (function() {
     var ds = document.createElement('script');
     ds.type = 'text/javascript';ds.async = true;
