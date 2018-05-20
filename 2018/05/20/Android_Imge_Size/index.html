@@ -26,7 +26,31 @@
 </tr>
 </tbody>
 </table>
-<p>drawable文件对应的desityDpi<br>|drawable|ldpi|mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi|<br>|-|-|-|-|-|-|-|<br>|desityDpi|120|160|240|320|480|640|</p>
+<p>drawable文件对应的desityDpi</p>
+<table>
+<thead>
+<tr>
+<th>drawable</th>
+<th>ldpi</th>
+<th>mdpi</th>
+<th>hdpi</th>
+<th>xhdpi</th>
+<th>xxhdpi</th>
+<th>xxxhdpi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>desityDpi</td>
+<td>120</td>
+<td>160</td>
+<td>240</td>
+<td>320</td>
+<td>480</td>
+<td>640</td>
+</tr>
+</tbody>
+</table>
 <a id="more"></a>
 <p><img src="/images/ppi_cal.png" alt="PPI计算公式"></p>
 <p>ppi是实际的dpi，是实际计算出来的，公式如下，然后根据这个值，在上图中找到最接近的dpi。<br>Nexus5 4.95inch<br>1920*1080<br>DPI = 445<br>1920^2+1080^2开根号/4.95 = 445，所以Nexus5的desity为3</p>
@@ -45,7 +69,7 @@
 <h4 id="4-inSampleSize"><a href="#4-inSampleSize" class="headerlink" title="4.inSampleSize"></a>4.inSampleSize</h4><p>BitmapFactory.Options类有一个参数inSampleSize，该参数为int型，他的值指示了在解析图片为Bitmap时在长宽两个方向上像素缩小的倍数。inSampleSize的默认值和最小值为1（当小于1时，解码器将该值当做1来处理），且在大于1时，该值只能为2的幂（当不为2的幂时，解码器会取与该值最接近的2的幂）。例如，当inSampleSize为2时，一个20001000的图片，将被缩小为1000500，相应地，它的像素数和内存占用都被缩小为了原来的1/4。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">calculateInSampleSize</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            BitmapFactory.Options options, <span class="keyword">int</span> reqWidth, <span class="keyword">int</span> reqHeight)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 原始图片的宽高</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> height = options.outHeight;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> width = options.outWidth;</span><br><span class="line">    <span class="keyword">int</span> inSampleSize = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (height &gt; reqHeight || width &gt; reqWidth) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> halfHeight = height / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> halfWidth = width / <span class="number">2</span>;</span><br><span class="line">        <span class="comment">// 在保证解析出的bitmap宽高分别大于目标尺寸宽高的前提下，取可能的inSampleSize的最大值</span></span><br><span class="line">        <span class="keyword">while</span> ((halfHeight / inSampleSize) &gt; reqHeight</span><br><span class="line">                &amp;&amp; (halfWidth / inSampleSize) &gt; reqWidth) &#123;</span><br><span class="line">            inSampleSize *= <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> inSampleSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h4 id="5-图片加载时候的三级缓存"><a href="#5-图片加载时候的三级缓存" class="headerlink" title="5.图片加载时候的三级缓存"></a>5.图片加载时候的三级缓存</h4><p>具体的缓存策略可以是这样的：内存作为一级缓存，本地作为二级缓存，网络加载为最后。其中，内存使用 LruCache ，其内部通过 LinkedhashMap 来持有外界缓存对象的强引用；对于本地缓存，使用 DiskLruCache。加载图片的时候，首先使用 LRU 方式进行寻找，找不到指定内容，按照三级缓存的方式，进行本地搜索，还没有就网络加载。</p>
 <h4 id="6-图片的缓存算法，LruCache使用的最近最少使用算法等"><a href="#6-图片的缓存算法，LruCache使用的最近最少使用算法等" class="headerlink" title="6.图片的缓存算法，LruCache使用的最近最少使用算法等"></a>6.图片的缓存算法，LruCache使用的最近最少使用算法等</h4><p>LruCache最近最少使用，利用了LinkedHashMap(双向链表)实现，当访问某个item，就把这个itme移动到链表头部，超过了，就移除尾部的item就达到了目的。</p>
-</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="next">NEXT</a></div><div data-thread-key="2018/05/20/Android_Imge_Size/" data-title="Android中图片到底占多大空间" data-url="http://www.qingyongai.com/2018/05/20/Android_Imge_Size/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="next">下一篇</a></div><div data-thread-key="2018/05/20/Android_Imge_Size/" data-title="Android中图片到底占多大空间" data-url="http://www.qingyongai.com/2018/05/20/Android_Imge_Size/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
 (function() {
     var ds = document.createElement('script');
     ds.type = 'text/javascript';ds.async = true;
