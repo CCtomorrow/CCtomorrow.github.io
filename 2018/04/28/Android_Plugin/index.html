@@ -37,7 +37,7 @@
 <p>代理分发技术也可以完美解决插件Service可以运行在不同的进程的问题——我们可以在AndroidManifest.xml中注册多个ProxyService，指定它们的process属性，让它们运行在不同的进程；当启动的插件Service希望运行在一个新的进程时，我们可以选择某一个合适的ProxyService进行分发。也许有童鞋会说，那得注册多少个ProxyService才能满足需求啊？理论上确实存在这问题，但事实上，一个App使用超过10个进程的几乎没有；因此这种方案是可行的。</p>
 <h4 id="ContentProvider-1"><a href="#ContentProvider-1" class="headerlink" title="ContentProvider"></a>ContentProvider</h4><p>插件化方案:<br>我们在宿主程序里面注册一个货真价实、被系统认可的StubContentProvider组件，把这个组件共享给第三方App；然后通过代理分发技术把第三方App对于插件ContentProvider的请求通过这个StubContentProvider分发给对应的插件。</p>
 <p>但是这还存在一个问题，由于第三方App查阅的其实是StubContentProvider，因此他们查阅的URI也必然是StubContentProvider的authority，要查询到插件的ContentProvider，必须把要查询的真正的插件ContentProvider信息传递进来。这个问题的解决方案也很容易，我们可以制定一个「插件查询协议」来实现。<br>将真实的 ContentProvider 信息放在Uri 中, 通过解析Uri 获取插件的真实的 ContentProvider 信息。</p>
-</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">上一篇</a><a href="/2018/02/22/ContentProvider_Plugin/" class="next">下一篇</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="四大组件插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/03/Android_Binder/" class="prev">PREV</a><a href="/2018/02/22/ContentProvider_Plugin/" class="next">NEXT</a></div><div data-thread-key="2018/04/28/Android_Plugin/" data-title="四大组件插件化总结" data-url="http://www.qingyongai.com/2018/04/28/Android_Plugin/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
 (function() {
     var ds = document.createElement('script');
     ds.type = 'text/javascript';ds.async = true;
@@ -47,4 +47,4 @@
      || document.getElementsByTagName('body')[0]).appendChild(ds);
 })();
 
-</script><div class="copyright"><p>© 2015 - 2019 <a href="http://www.qingyongai.com">CCtomorrow</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>
+</script><div class="copyright"><p>© 2015 - 2020 <a href="http://www.qingyongai.com">CCtomorrow</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>
