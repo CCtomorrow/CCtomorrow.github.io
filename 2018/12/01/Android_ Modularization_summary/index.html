@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="zh-Hans"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 安卓组件化总结 · CCtomorrow</title><meta name="description" content="安卓组件化总结 - CCtomorrow"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="https://cctomorrow.github.io/atom.xml" title="CCtomorrow"><meta name="generator" content="Hexo 5.2.0"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">HOME</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/about" target="_self" class="nav-list-link">ABOUT</a></li><li class="nav-list-item"><a href="https://github.com/CCtomorrow" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">安卓组件化总结</h1><div class="post-info">2018-12-01</div><div class="post-content"><p>这是一篇迟来的安卓的组件化文章的总结，文章主要讲述组件化过程中，需要解决的问题，以及目前的组件化框架是如何解决这个问题的，这篇文章预计会很长，因为想详细分析一下目前存在的比较知名的组件化框架。</p>
+<p>组件化框架太多，预计，文章会分析如下组件化框架:<br><a target="_blank" rel="noopener" href="https://github.com/alibaba/ARouter">ARouter</a><br><a target="_blank" rel="noopener" href="https://github.com/meituan/WMRouter">WMRouter</a><br><a target="_blank" rel="noopener" href="https://github.com/luckybilly/CC">CC</a><br><a target="_blank" rel="noopener" href="https://github.com/mqzhangw/JIMU">JIMU</a><br>个人精力实在有限，而且上面的四个组件化框架已经很有代表性了。</p>
+<p>下面是一些比较好的组件化的文章:<br>// todo</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26744821">Android 模块化探索与实践</a></li>
+<li><a href=""></a></li>
+<li><a href=""></a></li>
+<li><a href=""></a></li>
+<li><a href=""></a></li>
+</ol>
+<p>组件化需要解决的问题:</p>
+<ol>
+<li>路由实现</li>
+<li>参数传递</li>
+<li>组件通信</li>
+</ol>
+<p>当然这篇文章<a target="_blank" rel="noopener" href="https://github.com/luckybilly/AndroidComponentizeLibs">AndroidComponentizeLibs</a>里面描述了各种问题，其实最重要的还是上面列出的。本文也只分析上面提出的问题，如果文章篇幅实在过长，会考虑分篇。</p>
+<a id="more"></a>
+
+<h3 id="路由实现"><a href="#路由实现" class="headerlink" title="路由实现"></a>路由实现</h3><p>一个路由框架大概要解决下面的几个问题:</p>
+<ol>
+<li>模块之间页面跳转</li>
+<li>模块之间数据传递</li>
+<li>模块初始化处理</li>
+</ol>
+<p>路由实现总体来说其实只有两种思路</p>
+<ol>
+<li>Activity在Manifest里面配置intent-filter然后直接跳转</li>
+<li>给Activity加上注解，然后使用apt收集url和Activity的对应关系跳转</li>
+</ol>
+<p>当然目前看到的很多的框架都是使用第二种方式，可能就在网页调起原生这里使用了第一种Scheme的形式。</p>
+<p>使用第一种方式的框架:<br><a target="_blank" rel="noopener" href="https://github.com/drakeet/Floo">Floo</a><br><a target="_blank" rel="noopener" href="https://github.com/BaronZ88/Router">Router</a><br>当然第一种方案由于每个页面都需要在Manifest里面配置数据，所以其实并不是特别好，这也是目前大部分的框架没有使用这种方式的原因，那么现在开始分析上面列举的四种框架的路由实现方案。</p>
+</div></article></div></main><footer><div class="paginator"><a href="/2019/01/20/AAPT2_USE/" class="prev">PREV</a><a href="/2018/11/25/Android_NDK_Learn_Base/" class="next">NEXT</a></div><div data-thread-key="2018/12/01/Android_ Modularization_summary/" data-title="安卓组件化总结" data-url="https://cctomorrow.github.io/2018/12/01/Android_%20Modularization_summary/" data-author-key="1" class="ds-thread"></div><script>var duoshuoQuery = {short_name:"[object Object]"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+
+</script><div class="copyright"><p>© 2015 - 2022 <a href="https://cctomorrow.github.io">CCtomorrow</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>
